@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+
+    <style>
+.HolyGrail,
+.HolyGrail-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.HolyGrail-nav {
+  order: -1;
+}
+
+@media (min-width: 768px) {
+  .HolyGrail-body {
+    flex-direction: row;
+    flex: 1;
+  }
+  .HolyGrail-content {
+    flex: 1;
+  }
+  .HolyGrail-nav, .HolyGrail-ads {
+    /* 12em is the width of the columns */
+    flex: 0 0 12em;
+  }
+}
+    </style>
+</head>
+<body>
+
+    <!-- <header>…</header> -->
+    
+    <div class="HolyGrail-body">
+        <main class="HolyGrail-content">
+            
+                <form class="form-mini" method="post" action="#">
+
+                    <div class="form-row">
+                        <input type="text" name="name" placeholder="Title (optional)">
+                    </div>
+
+                    <div class="form-row">
+                        <input type="email" name="email" placeholder="Url">
+                    </div>
+
+
+                    <div class="form-row form-last-row">
+                        <button type="submit">Save</button>
+                    </div>
+
+                </form>
+
+                <hr>
+
+               <div class="notes">
+                <div class="note" class="small">
+                    <h1><a href="www.google.com.ar">google</a></h1>
+                    <button type="button">
+                        <i class="fa fa-trash-o" aria-hidden="true"></i>
+                    </button>
+                    <button class="edit" type="button">
+                        <i class="fa fa-pencil" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="note" class="small">
+                    <h1><a href="http://malditosnerds.com/">malditos nerds</a></h1>
+                    <button type="button">
+                        <i class="fa fa-trash-o" aria-hidden="true"></i>
+                    </button>
+                    <button class="edit" type="button">
+                        <i class="fa fa-pencil" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="note" class="small">
+                    <h1><a href="http://www.irrompibles.net/">irrompibles</a></h1>
+                    <button type="button">
+                        <i class="fa fa-trash-o" aria-hidden="true"></i>
+                    </button>
+                    <button class="edit" type="button">
+                        <i class="fa fa-pencil" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="note" class="small">
+                    <h1><a href="http://www.pcmrace.com/">http://www.pcmrace.com/</a></h1>
+                    <button type="button">
+                        <i class="fa fa-trash-o" aria-hidden="true"></i>
+                    </button>
+                    <button class="edit" type="button">
+                        <i class="fa fa-pencil" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="note" class="small">
+                    <h1><a href="https://gist.github.com/nlattessi/26079bb306ad6350159a76657b1eaccd">links utiles</a></h1>
+                    <button type="button">
+                        <i class="fa fa-trash-o" aria-hidden="true"></i>
+                    </button>
+                    <button class="edit" type="button">
+                        <i class="fa fa-pencil" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+
+        </main>
+        
+        <nav class="HolyGrail-nav">
+            
+<ul>
+                        <li>
+                            <a href="#">Home</a>
+                            <div>
+                                <ul>
+                                    <li><a href="#">Category 1</a></li>
+                                    <li><a href="#">Category 2</a></li>
+                                    <li><a href="#">Category 3</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li>
+                            <a href="#">Blog</a>
+                            <div>
+                                <ul>
+                                    <li><a href="#">Category 4</a></li>
+                                    <li><a href="#">Category 5</a></li>
+                                    <li><a href="#">Category 6</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+
+        </nav>
+        <!-- <aside class="HolyGrail-ads">…</aside> -->
+    </div>
+    
+    <!-- <footer>…</footer> -->
+    
+</body>
+</html>

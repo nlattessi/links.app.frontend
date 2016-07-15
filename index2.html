@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
+
+    <!-- <link rel="stylesheet" href="primer.css"> -->
+
+    <link rel="stylesheet" href="assets/form-mini.css">
+    <!-- <link rel="stylesheet" href="assets/form-search.css"> -->
+
     <script src="https://npmcdn.com/masonry-layout@4.0/dist/masonry.pkgd.min.js"></script>
     <title>Document</title>
 
@@ -296,15 +302,85 @@
         .expand-enter, .expand-leave {
             max-height: 0;
         }
+
+        /* testing */
+        div.categories {
+            /*margin: 20px auto;*/
+            width: 350px;
+            float: left;
+        }
+        nav.vertical {
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0,0,0,.15);
+            overflow: hidden;
+            text-align: center;
+        }
+        nav.vertical > ul {
+            list-style-type: none;
+        }
+        nav.vertical > ul > li {
+            display: block;
+        }
+        nav.vertical > ul > li > a {
+            background-color: rgb(157, 34, 60);
+            background-image: -webkit-linear-gradient(135deg, rgb(114, 51, 98), rgb(157, 34, 60));
+            background-image: -moz-linear-gradient(135deg, rgb(114, 51, 98), rgb(157, 34, 60));
+            background-image: -o-linear-gradient(135deg, rgb(114, 51, 98), rgb(157, 34, 60));
+            background-image: linear-gradient(135deg, rgb(114, 51, 98), rgb(157, 34, 60));
+            border-bottom: 1px solid rgba(255,255,255,.1);
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.1), 0 1px 1px rgba(0,0,0,.1);
+            color: rgb(255,255,255);
+            display: block;
+            font-size: .85rem;
+            font-weight: 500;
+            height: 50px;
+            letter-spacing: .5rem;
+            line-height: 50px;
+            text-shadow: 0 1px 1px rgba(0,0,0,.1);
+            text-transform: uppercase;
+            transition: all .1s ease;
+            text-decoration: none;
+        }
+        nav.vertical > ul > li > a:hover {
+            background-color: rgb(114, 51, 98);
+            background-image: -webkit-linear-gradient(150deg, rgb(114, 51, 98), rgb(114, 51, 98));
+            background-image: -moz-linear-gradient(150deg, rgb(114, 51, 98), rgb(114, 51, 98));
+            background-image: -o-linear-gradient(150deg, rgb(114, 51, 98), rgb(114, 51, 98));
+            background-image: linear-gradient(150deg, rgb(114, 51, 98), rgb(114, 51, 98)); 
+            cursor: pointer;
+        }
+        nav.vertical > ul > li > div {
+            background-color: rgb(255,255,255);
+        }
+
+        nav.vertical > ul > li > div > ul {
+            list-style-type: none;
+        }
+
+        nav.vertical > ul > li > div > ul > li > a {
+            background-color: rgb(255,255,255);
+            border-bottom: 1px solid rgba(0,0,0,.05);
+            color: #333331;
+            display: block;
+            font-size: 1.1rem;
+            padding: 10px 0;
+            text-decoration: none;
+            transition: all 0.15s linear;
+        }
+        nav.vertical > ul > li > div > ul > li:hover > a {
+            background-color: lightBlue;
+            color: rgb(255,255,255);
+            padding: 10px 0 10px 50px;
+        }
     </style>
 
 </head>
 <body>
 
-    <div>
+    <div class="container">
 
         <header>
-            <input placeholder="Search" debounce="500">
+            <!-- <input placeholder="Search" debounce="500"> -->
             <div>
                 <span>{{user.userTitle}}</span>
                 <a href="#">
@@ -322,7 +398,74 @@
             </div>
         </div> -->
 
-        <div>
+        <div class="columns">
+            <div class="one-fifth column">
+
+            <div class="categories">
+                <nav class="vertical">
+                    <ul>
+                        <li>
+                            <a href="#">Home</a>
+                            <div>
+                                <ul>
+                                    <li><a href="#">Category 1</a></li>
+                                    <li><a href="#">Category 2</a></li>
+                                    <li><a href="#">Category 3</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li>
+                            <a href="#">Blog</a>
+                            <div>
+                                <ul>
+                                    <li><a href="#">Category 4</a></li>
+                                    <li><a href="#">Category 5</a></li>
+                                    <li><a href="#">Category 6</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+                
+            </div>
+        
+
+        <div class="four-fifths column">
+
+            
+
+
+            <div class="search-form">
+                <form class="form-search" method="get" action="#">
+                    <input type="search" name="search" placeholder="I am looking for..">
+                    <button type="submit">Search</button>
+                    <i class="fa fa-search"></i>
+                </form>    
+            </div>
+
+            
+            <div class="form-mini-container">
+
+                <!-- <h1>Mini Form</h1> -->
+
+                <form class="form-mini" method="post" action="#">
+
+                    <div class="form-row">
+                        <input type="text" name="name" placeholder="Title (optional)">
+                    </div>
+
+                    <div class="form-row">
+                        <input type="email" name="email" placeholder="Url">
+                    </div>
+
+
+                    <div class="form-row form-last-row">
+                        <button type="submit">Save</button>
+                    </div>
+
+                </form>
+            </div>
 
             <form action="" class="create-note">
                 <input name="title" placeholder="Title (optional)" />
@@ -368,7 +511,7 @@
                     </button>
                 </div>
                 <div class="note" class="small">
-                    <h1><a href="https://gist.github.com/nlattessi/26079bb306ad6350159a76657b1eaccd">links utiles</a></h1>
+                    <h1><a href="https://gist.github.com/nlattessi/26079bb306ad6350159a76657b1eaccd">https://gist.github.com/nlattessi/26079bb306ad6350159a76657b1eaccd</a></h1>
                     <button type="button">
                         <i class="fa fa-trash-o" aria-hidden="true"></i>
                     </button>
@@ -388,6 +531,8 @@
                     <button type="submit">Done</button>
                 </form>
             </div> -->
+
+        </div>
 
         </div>
 
