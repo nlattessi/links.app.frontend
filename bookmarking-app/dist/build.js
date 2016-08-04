@@ -50,11 +50,17 @@
 
 	var _vue2 = _interopRequireDefault(_vue);
 
-	var _App = __webpack_require__(3);
+	var _vueResource = __webpack_require__(3);
+
+	var _vueResource2 = _interopRequireDefault(_vueResource);
+
+	var _App = __webpack_require__(4);
 
 	var _App2 = _interopRequireDefault(_App);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	_vue2.default.use(_vueResource2.default);
 
 	new _vue2.default({
 	  el: 'body',
@@ -10268,15 +10274,1332 @@
 
 /***/ },
 /* 3 */
+/***/ function(module, exports) {
+
+	/*!
+	 * vue-resource v0.9.3
+	 * https://github.com/vuejs/vue-resource
+	 * Released under the MIT License.
+	 */
+
+	'use strict';
+
+	/**
+	 * Promises/A+ polyfill v1.1.4 (https://github.com/bramstein/promis)
+	 */
+
+	var RESOLVED = 0;
+	var REJECTED = 1;
+	var PENDING = 2;
+
+	function Promise$2(executor) {
+
+	    this.state = PENDING;
+	    this.value = undefined;
+	    this.deferred = [];
+
+	    var promise = this;
+
+	    try {
+	        executor(function (x) {
+	            promise.resolve(x);
+	        }, function (r) {
+	            promise.reject(r);
+	        });
+	    } catch (e) {
+	        promise.reject(e);
+	    }
+	}
+
+	Promise$2.reject = function (r) {
+	    return new Promise$2(function (resolve, reject) {
+	        reject(r);
+	    });
+	};
+
+	Promise$2.resolve = function (x) {
+	    return new Promise$2(function (resolve, reject) {
+	        resolve(x);
+	    });
+	};
+
+	Promise$2.all = function all(iterable) {
+	    return new Promise$2(function (resolve, reject) {
+	        var count = 0,
+	            result = [];
+
+	        if (iterable.length === 0) {
+	            resolve(result);
+	        }
+
+	        function resolver(i) {
+	            return function (x) {
+	                result[i] = x;
+	                count += 1;
+
+	                if (count === iterable.length) {
+	                    resolve(result);
+	                }
+	            };
+	        }
+
+	        for (var i = 0; i < iterable.length; i += 1) {
+	            Promise$2.resolve(iterable[i]).then(resolver(i), reject);
+	        }
+	    });
+	};
+
+	Promise$2.race = function race(iterable) {
+	    return new Promise$2(function (resolve, reject) {
+	        for (var i = 0; i < iterable.length; i += 1) {
+	            Promise$2.resolve(iterable[i]).then(resolve, reject);
+	        }
+	    });
+	};
+
+	var p$1 = Promise$2.prototype;
+
+	p$1.resolve = function resolve(x) {
+	    var promise = this;
+
+	    if (promise.state === PENDING) {
+	        if (x === promise) {
+	            throw new TypeError('Promise settled with itself.');
+	        }
+
+	        var called = false;
+
+	        try {
+	            var then = x && x['then'];
+
+	            if (x !== null && typeof x === 'object' && typeof then === 'function') {
+	                then.call(x, function (x) {
+	                    if (!called) {
+	                        promise.resolve(x);
+	                    }
+	                    called = true;
+	                }, function (r) {
+	                    if (!called) {
+	                        promise.reject(r);
+	                    }
+	                    called = true;
+	                });
+	                return;
+	            }
+	        } catch (e) {
+	            if (!called) {
+	                promise.reject(e);
+	            }
+	            return;
+	        }
+
+	        promise.state = RESOLVED;
+	        promise.value = x;
+	        promise.notify();
+	    }
+	};
+
+	p$1.reject = function reject(reason) {
+	    var promise = this;
+
+	    if (promise.state === PENDING) {
+	        if (reason === promise) {
+	            throw new TypeError('Promise settled with itself.');
+	        }
+
+	        promise.state = REJECTED;
+	        promise.value = reason;
+	        promise.notify();
+	    }
+	};
+
+	p$1.notify = function notify() {
+	    var promise = this;
+
+	    nextTick(function () {
+	        if (promise.state !== PENDING) {
+	            while (promise.deferred.length) {
+	                var deferred = promise.deferred.shift(),
+	                    onResolved = deferred[0],
+	                    onRejected = deferred[1],
+	                    resolve = deferred[2],
+	                    reject = deferred[3];
+
+	                try {
+	                    if (promise.state === RESOLVED) {
+	                        if (typeof onResolved === 'function') {
+	                            resolve(onResolved.call(undefined, promise.value));
+	                        } else {
+	                            resolve(promise.value);
+	                        }
+	                    } else if (promise.state === REJECTED) {
+	                        if (typeof onRejected === 'function') {
+	                            resolve(onRejected.call(undefined, promise.value));
+	                        } else {
+	                            reject(promise.value);
+	                        }
+	                    }
+	                } catch (e) {
+	                    reject(e);
+	                }
+	            }
+	        }
+	    });
+	};
+
+	p$1.then = function then(onResolved, onRejected) {
+	    var promise = this;
+
+	    return new Promise$2(function (resolve, reject) {
+	        promise.deferred.push([onResolved, onRejected, resolve, reject]);
+	        promise.notify();
+	    });
+	};
+
+	p$1.catch = function (onRejected) {
+	    return this.then(undefined, onRejected);
+	};
+
+	var PromiseObj = window.Promise || Promise$2;
+
+	function Promise$1(executor, context) {
+
+	    if (executor instanceof PromiseObj) {
+	        this.promise = executor;
+	    } else {
+	        this.promise = new PromiseObj(executor.bind(context));
+	    }
+
+	    this.context = context;
+	}
+
+	Promise$1.all = function (iterable, context) {
+	    return new Promise$1(PromiseObj.all(iterable), context);
+	};
+
+	Promise$1.resolve = function (value, context) {
+	    return new Promise$1(PromiseObj.resolve(value), context);
+	};
+
+	Promise$1.reject = function (reason, context) {
+	    return new Promise$1(PromiseObj.reject(reason), context);
+	};
+
+	Promise$1.race = function (iterable, context) {
+	    return new Promise$1(PromiseObj.race(iterable), context);
+	};
+
+	var p = Promise$1.prototype;
+
+	p.bind = function (context) {
+	    this.context = context;
+	    return this;
+	};
+
+	p.then = function (fulfilled, rejected) {
+
+	    if (fulfilled && fulfilled.bind && this.context) {
+	        fulfilled = fulfilled.bind(this.context);
+	    }
+
+	    if (rejected && rejected.bind && this.context) {
+	        rejected = rejected.bind(this.context);
+	    }
+
+	    return new Promise$1(this.promise.then(fulfilled, rejected), this.context);
+	};
+
+	p.catch = function (rejected) {
+
+	    if (rejected && rejected.bind && this.context) {
+	        rejected = rejected.bind(this.context);
+	    }
+
+	    return new Promise$1(this.promise.catch(rejected), this.context);
+	};
+
+	p.finally = function (callback) {
+
+	    return this.then(function (value) {
+	        callback.call(this);
+	        return value;
+	    }, function (reason) {
+	        callback.call(this);
+	        return PromiseObj.reject(reason);
+	    });
+	};
+
+	var debug = false;
+	var util = {};
+	var array = [];
+	function Util (Vue) {
+	    util = Vue.util;
+	    debug = Vue.config.debug || !Vue.config.silent;
+	}
+
+	function warn(msg) {
+	    if (typeof console !== 'undefined' && debug) {
+	        console.warn('[VueResource warn]: ' + msg);
+	    }
+	}
+
+	function error(msg) {
+	    if (typeof console !== 'undefined') {
+	        console.error(msg);
+	    }
+	}
+
+	function nextTick(cb, ctx) {
+	    return util.nextTick(cb, ctx);
+	}
+
+	function trim(str) {
+	    return str.replace(/^\s*|\s*$/g, '');
+	}
+
+	var isArray = Array.isArray;
+
+	function isString(val) {
+	    return typeof val === 'string';
+	}
+
+	function isBoolean(val) {
+	    return val === true || val === false;
+	}
+
+	function isFunction(val) {
+	    return typeof val === 'function';
+	}
+
+	function isObject(obj) {
+	    return obj !== null && typeof obj === 'object';
+	}
+
+	function isPlainObject(obj) {
+	    return isObject(obj) && Object.getPrototypeOf(obj) == Object.prototype;
+	}
+
+	function isFormData(obj) {
+	    return typeof FormData !== 'undefined' && obj instanceof FormData;
+	}
+
+	function when(value, fulfilled, rejected) {
+
+	    var promise = Promise$1.resolve(value);
+
+	    if (arguments.length < 2) {
+	        return promise;
+	    }
+
+	    return promise.then(fulfilled, rejected);
+	}
+
+	function options(fn, obj, opts) {
+
+	    opts = opts || {};
+
+	    if (isFunction(opts)) {
+	        opts = opts.call(obj);
+	    }
+
+	    return merge(fn.bind({ $vm: obj, $options: opts }), fn, { $options: opts });
+	}
+
+	function each(obj, iterator) {
+
+	    var i, key;
+
+	    if (typeof obj.length == 'number') {
+	        for (i = 0; i < obj.length; i++) {
+	            iterator.call(obj[i], obj[i], i);
+	        }
+	    } else if (isObject(obj)) {
+	        for (key in obj) {
+	            if (obj.hasOwnProperty(key)) {
+	                iterator.call(obj[key], obj[key], key);
+	            }
+	        }
+	    }
+
+	    return obj;
+	}
+
+	var assign = Object.assign || _assign;
+
+	function merge(target) {
+
+	    var args = array.slice.call(arguments, 1);
+
+	    args.forEach(function (source) {
+	        _merge(target, source, true);
+	    });
+
+	    return target;
+	}
+
+	function defaults(target) {
+
+	    var args = array.slice.call(arguments, 1);
+
+	    args.forEach(function (source) {
+
+	        for (var key in source) {
+	            if (target[key] === undefined) {
+	                target[key] = source[key];
+	            }
+	        }
+	    });
+
+	    return target;
+	}
+
+	function _assign(target) {
+
+	    var args = array.slice.call(arguments, 1);
+
+	    args.forEach(function (source) {
+	        _merge(target, source);
+	    });
+
+	    return target;
+	}
+
+	function _merge(target, source, deep) {
+	    for (var key in source) {
+	        if (deep && (isPlainObject(source[key]) || isArray(source[key]))) {
+	            if (isPlainObject(source[key]) && !isPlainObject(target[key])) {
+	                target[key] = {};
+	            }
+	            if (isArray(source[key]) && !isArray(target[key])) {
+	                target[key] = [];
+	            }
+	            _merge(target[key], source[key], deep);
+	        } else if (source[key] !== undefined) {
+	            target[key] = source[key];
+	        }
+	    }
+	}
+
+	function root (options, next) {
+
+	    var url = next(options);
+
+	    if (isString(options.root) && !url.match(/^(https?:)?\//)) {
+	        url = options.root + '/' + url;
+	    }
+
+	    return url;
+	}
+
+	function query (options, next) {
+
+	    var urlParams = Object.keys(Url.options.params),
+	        query = {},
+	        url = next(options);
+
+	    each(options.params, function (value, key) {
+	        if (urlParams.indexOf(key) === -1) {
+	            query[key] = value;
+	        }
+	    });
+
+	    query = Url.params(query);
+
+	    if (query) {
+	        url += (url.indexOf('?') == -1 ? '?' : '&') + query;
+	    }
+
+	    return url;
+	}
+
+	/**
+	 * URL Template v2.0.6 (https://github.com/bramstein/url-template)
+	 */
+
+	function expand(url, params, variables) {
+
+	    var tmpl = parse(url),
+	        expanded = tmpl.expand(params);
+
+	    if (variables) {
+	        variables.push.apply(variables, tmpl.vars);
+	    }
+
+	    return expanded;
+	}
+
+	function parse(template) {
+
+	    var operators = ['+', '#', '.', '/', ';', '?', '&'],
+	        variables = [];
+
+	    return {
+	        vars: variables,
+	        expand: function (context) {
+	            return template.replace(/\{([^\{\}]+)\}|([^\{\}]+)/g, function (_, expression, literal) {
+	                if (expression) {
+
+	                    var operator = null,
+	                        values = [];
+
+	                    if (operators.indexOf(expression.charAt(0)) !== -1) {
+	                        operator = expression.charAt(0);
+	                        expression = expression.substr(1);
+	                    }
+
+	                    expression.split(/,/g).forEach(function (variable) {
+	                        var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
+	                        values.push.apply(values, getValues(context, operator, tmp[1], tmp[2] || tmp[3]));
+	                        variables.push(tmp[1]);
+	                    });
+
+	                    if (operator && operator !== '+') {
+
+	                        var separator = ',';
+
+	                        if (operator === '?') {
+	                            separator = '&';
+	                        } else if (operator !== '#') {
+	                            separator = operator;
+	                        }
+
+	                        return (values.length !== 0 ? operator : '') + values.join(separator);
+	                    } else {
+	                        return values.join(',');
+	                    }
+	                } else {
+	                    return encodeReserved(literal);
+	                }
+	            });
+	        }
+	    };
+	}
+
+	function getValues(context, operator, key, modifier) {
+
+	    var value = context[key],
+	        result = [];
+
+	    if (isDefined(value) && value !== '') {
+	        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+	            value = value.toString();
+
+	            if (modifier && modifier !== '*') {
+	                value = value.substring(0, parseInt(modifier, 10));
+	            }
+
+	            result.push(encodeValue(operator, value, isKeyOperator(operator) ? key : null));
+	        } else {
+	            if (modifier === '*') {
+	                if (Array.isArray(value)) {
+	                    value.filter(isDefined).forEach(function (value) {
+	                        result.push(encodeValue(operator, value, isKeyOperator(operator) ? key : null));
+	                    });
+	                } else {
+	                    Object.keys(value).forEach(function (k) {
+	                        if (isDefined(value[k])) {
+	                            result.push(encodeValue(operator, value[k], k));
+	                        }
+	                    });
+	                }
+	            } else {
+	                var tmp = [];
+
+	                if (Array.isArray(value)) {
+	                    value.filter(isDefined).forEach(function (value) {
+	                        tmp.push(encodeValue(operator, value));
+	                    });
+	                } else {
+	                    Object.keys(value).forEach(function (k) {
+	                        if (isDefined(value[k])) {
+	                            tmp.push(encodeURIComponent(k));
+	                            tmp.push(encodeValue(operator, value[k].toString()));
+	                        }
+	                    });
+	                }
+
+	                if (isKeyOperator(operator)) {
+	                    result.push(encodeURIComponent(key) + '=' + tmp.join(','));
+	                } else if (tmp.length !== 0) {
+	                    result.push(tmp.join(','));
+	                }
+	            }
+	        }
+	    } else {
+	        if (operator === ';') {
+	            result.push(encodeURIComponent(key));
+	        } else if (value === '' && (operator === '&' || operator === '?')) {
+	            result.push(encodeURIComponent(key) + '=');
+	        } else if (value === '') {
+	            result.push('');
+	        }
+	    }
+
+	    return result;
+	}
+
+	function isDefined(value) {
+	    return value !== undefined && value !== null;
+	}
+
+	function isKeyOperator(operator) {
+	    return operator === ';' || operator === '&' || operator === '?';
+	}
+
+	function encodeValue(operator, value, key) {
+
+	    value = operator === '+' || operator === '#' ? encodeReserved(value) : encodeURIComponent(value);
+
+	    if (key) {
+	        return encodeURIComponent(key) + '=' + value;
+	    } else {
+	        return value;
+	    }
+	}
+
+	function encodeReserved(str) {
+	    return str.split(/(%[0-9A-Fa-f]{2})/g).map(function (part) {
+	        if (!/%[0-9A-Fa-f]/.test(part)) {
+	            part = encodeURI(part);
+	        }
+	        return part;
+	    }).join('');
+	}
+
+	function template (options) {
+
+	    var variables = [],
+	        url = expand(options.url, options.params, variables);
+
+	    variables.forEach(function (key) {
+	        delete options.params[key];
+	    });
+
+	    return url;
+	}
+
+	/**
+	 * Service for URL templating.
+	 */
+
+	var ie = document.documentMode;
+	var el = document.createElement('a');
+
+	function Url(url, params) {
+
+	    var self = this || {},
+	        options = url,
+	        transform;
+
+	    if (isString(url)) {
+	        options = { url: url, params: params };
+	    }
+
+	    options = merge({}, Url.options, self.$options, options);
+
+	    Url.transforms.forEach(function (handler) {
+	        transform = factory(handler, transform, self.$vm);
+	    });
+
+	    return transform(options);
+	}
+
+	/**
+	 * Url options.
+	 */
+
+	Url.options = {
+	    url: '',
+	    root: null,
+	    params: {}
+	};
+
+	/**
+	 * Url transforms.
+	 */
+
+	Url.transforms = [template, query, root];
+
+	/**
+	 * Encodes a Url parameter string.
+	 *
+	 * @param {Object} obj
+	 */
+
+	Url.params = function (obj) {
+
+	    var params = [],
+	        escape = encodeURIComponent;
+
+	    params.add = function (key, value) {
+
+	        if (isFunction(value)) {
+	            value = value();
+	        }
+
+	        if (value === null) {
+	            value = '';
+	        }
+
+	        this.push(escape(key) + '=' + escape(value));
+	    };
+
+	    serialize(params, obj);
+
+	    return params.join('&').replace(/%20/g, '+');
+	};
+
+	/**
+	 * Parse a URL and return its components.
+	 *
+	 * @param {String} url
+	 */
+
+	Url.parse = function (url) {
+
+	    if (ie) {
+	        el.href = url;
+	        url = el.href;
+	    }
+
+	    el.href = url;
+
+	    return {
+	        href: el.href,
+	        protocol: el.protocol ? el.protocol.replace(/:$/, '') : '',
+	        port: el.port,
+	        host: el.host,
+	        hostname: el.hostname,
+	        pathname: el.pathname.charAt(0) === '/' ? el.pathname : '/' + el.pathname,
+	        search: el.search ? el.search.replace(/^\?/, '') : '',
+	        hash: el.hash ? el.hash.replace(/^#/, '') : ''
+	    };
+	};
+
+	function factory(handler, next, vm) {
+	    return function (options) {
+	        return handler.call(vm, options, next);
+	    };
+	}
+
+	function serialize(params, obj, scope) {
+
+	    var array = isArray(obj),
+	        plain = isPlainObject(obj),
+	        hash;
+
+	    each(obj, function (value, key) {
+
+	        hash = isObject(value) || isArray(value);
+
+	        if (scope) {
+	            key = scope + '[' + (plain || hash ? key : '') + ']';
+	        }
+
+	        if (!scope && array) {
+	            params.add(value.name, value.value);
+	        } else if (hash) {
+	            serialize(params, value, key);
+	        } else {
+	            params.add(key, value);
+	        }
+	    });
+	}
+
+	function xdrClient (request) {
+	    return new Promise$1(function (resolve) {
+
+	        var xdr = new XDomainRequest(),
+	            handler = function (event) {
+
+	            var response = request.respondWith(xdr.responseText, {
+	                status: xdr.status,
+	                statusText: xdr.statusText
+	            });
+
+	            resolve(response);
+	        };
+
+	        request.abort = function () {
+	            return xdr.abort();
+	        };
+
+	        xdr.open(request.method, request.getUrl(), true);
+	        xdr.timeout = 0;
+	        xdr.onload = handler;
+	        xdr.onerror = handler;
+	        xdr.ontimeout = function () {};
+	        xdr.onprogress = function () {};
+	        xdr.send(request.getBody());
+	    });
+	}
+
+	var ORIGIN_URL = Url.parse(location.href);
+	var SUPPORTS_CORS = 'withCredentials' in new XMLHttpRequest();
+
+	function cors (request, next) {
+
+	    if (!isBoolean(request.crossOrigin) && crossOrigin(request)) {
+	        request.crossOrigin = true;
+	    }
+
+	    if (request.crossOrigin) {
+
+	        if (!SUPPORTS_CORS) {
+	            request.client = xdrClient;
+	        }
+
+	        delete request.emulateHTTP;
+	    }
+
+	    next();
+	}
+
+	function crossOrigin(request) {
+
+	    var requestUrl = Url.parse(Url(request));
+
+	    return requestUrl.protocol !== ORIGIN_URL.protocol || requestUrl.host !== ORIGIN_URL.host;
+	}
+
+	function body (request, next) {
+
+	    if (request.emulateJSON && isPlainObject(request.body)) {
+	        request.body = Url.params(request.body);
+	        request.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+	    }
+
+	    if (isFormData(request.body)) {
+	        delete request.headers['Content-Type'];
+	    }
+
+	    if (isPlainObject(request.body)) {
+	        request.body = JSON.stringify(request.body);
+	    }
+
+	    next(function (response) {
+
+	        var contentType = response.headers['Content-Type'];
+
+	        if (isString(contentType) && contentType.indexOf('application/json') === 0) {
+
+	            try {
+	                response.data = response.json();
+	            } catch (e) {
+	                response.data = null;
+	            }
+	        } else {
+	            response.data = response.text();
+	        }
+	    });
+	}
+
+	function jsonpClient (request) {
+	    return new Promise$1(function (resolve) {
+
+	        var name = request.jsonp || 'callback',
+	            callback = '_jsonp' + Math.random().toString(36).substr(2),
+	            body = null,
+	            handler,
+	            script;
+
+	        handler = function (event) {
+
+	            var status = 0;
+
+	            if (event.type === 'load' && body !== null) {
+	                status = 200;
+	            } else if (event.type === 'error') {
+	                status = 404;
+	            }
+
+	            resolve(request.respondWith(body, { status: status }));
+
+	            delete window[callback];
+	            document.body.removeChild(script);
+	        };
+
+	        request.params[name] = callback;
+
+	        window[callback] = function (result) {
+	            body = JSON.stringify(result);
+	        };
+
+	        script = document.createElement('script');
+	        script.src = request.getUrl();
+	        script.type = 'text/javascript';
+	        script.async = true;
+	        script.onload = handler;
+	        script.onerror = handler;
+
+	        document.body.appendChild(script);
+	    });
+	}
+
+	function jsonp (request, next) {
+
+	    if (request.method == 'JSONP') {
+	        request.client = jsonpClient;
+	    }
+
+	    next(function (response) {
+
+	        if (request.method == 'JSONP') {
+	            response.data = response.json();
+	        }
+	    });
+	}
+
+	function before (request, next) {
+
+	    if (isFunction(request.before)) {
+	        request.before.call(this, request);
+	    }
+
+	    next();
+	}
+
+	/**
+	 * HTTP method override Interceptor.
+	 */
+
+	function method (request, next) {
+
+	    if (request.emulateHTTP && /^(PUT|PATCH|DELETE)$/i.test(request.method)) {
+	        request.headers['X-HTTP-Method-Override'] = request.method;
+	        request.method = 'POST';
+	    }
+
+	    next();
+	}
+
+	function header (request, next) {
+
+	    request.method = request.method.toUpperCase();
+	    request.headers = assign({}, Http.headers.common, !request.crossOrigin ? Http.headers.custom : {}, Http.headers[request.method.toLowerCase()], request.headers);
+
+	    next();
+	}
+
+	/**
+	 * Timeout Interceptor.
+	 */
+
+	function timeout (request, next) {
+
+	    var timeout;
+
+	    if (request.timeout) {
+	        timeout = setTimeout(function () {
+	            request.abort();
+	        }, request.timeout);
+	    }
+
+	    next(function (response) {
+
+	        clearTimeout(timeout);
+	    });
+	}
+
+	function xhrClient (request) {
+	    return new Promise$1(function (resolve) {
+
+	        var xhr = new XMLHttpRequest(),
+	            handler = function (event) {
+
+	            var response = request.respondWith('response' in xhr ? xhr.response : xhr.responseText, {
+	                status: xhr.status === 1223 ? 204 : xhr.status, // IE9 status bug
+	                statusText: xhr.status === 1223 ? 'No Content' : trim(xhr.statusText),
+	                headers: parseHeaders(xhr.getAllResponseHeaders())
+	            });
+
+	            resolve(response);
+	        };
+
+	        request.abort = function () {
+	            return xhr.abort();
+	        };
+
+	        xhr.open(request.method, request.getUrl(), true);
+	        xhr.timeout = 0;
+	        xhr.onload = handler;
+	        xhr.onerror = handler;
+
+	        if (request.progress) {
+	            if (request.method === 'GET') {
+	                xhr.addEventListener('progress', request.progress);
+	            } else if (/^(POST|PUT)$/i.test(request.method)) {
+	                xhr.upload.addEventListener('progress', request.progress);
+	            }
+	        }
+
+	        if (request.credentials === true) {
+	            xhr.withCredentials = true;
+	        }
+
+	        each(request.headers || {}, function (value, header) {
+	            xhr.setRequestHeader(header, value);
+	        });
+
+	        xhr.send(request.getBody());
+	    });
+	}
+
+	function parseHeaders(str) {
+
+	    var headers = {},
+	        value,
+	        name,
+	        i;
+
+	    each(trim(str).split('\n'), function (row) {
+
+	        i = row.indexOf(':');
+	        name = trim(row.slice(0, i));
+	        value = trim(row.slice(i + 1));
+
+	        if (headers[name]) {
+
+	            if (isArray(headers[name])) {
+	                headers[name].push(value);
+	            } else {
+	                headers[name] = [headers[name], value];
+	            }
+	        } else {
+
+	            headers[name] = value;
+	        }
+	    });
+
+	    return headers;
+	}
+
+	function Client (context) {
+
+	    var reqHandlers = [sendRequest],
+	        resHandlers = [],
+	        handler;
+
+	    if (!isObject(context)) {
+	        context = null;
+	    }
+
+	    function Client(request) {
+	        return new Promise$1(function (resolve) {
+
+	            function exec() {
+
+	                handler = reqHandlers.pop();
+
+	                if (isFunction(handler)) {
+	                    handler.call(context, request, next);
+	                } else {
+	                    warn('Invalid interceptor of type ' + typeof handler + ', must be a function');
+	                    next();
+	                }
+	            }
+
+	            function next(response) {
+
+	                if (isFunction(response)) {
+
+	                    resHandlers.unshift(response);
+	                } else if (isObject(response)) {
+
+	                    resHandlers.forEach(function (handler) {
+	                        response = when(response, function (response) {
+	                            return handler.call(context, response) || response;
+	                        });
+	                    });
+
+	                    when(response, resolve);
+
+	                    return;
+	                }
+
+	                exec();
+	            }
+
+	            exec();
+	        }, context);
+	    }
+
+	    Client.use = function (handler) {
+	        reqHandlers.push(handler);
+	    };
+
+	    return Client;
+	}
+
+	function sendRequest(request, resolve) {
+
+	    var client = request.client || xhrClient;
+
+	    resolve(client(request));
+	}
+
+	var classCallCheck = function (instance, Constructor) {
+	  if (!(instance instanceof Constructor)) {
+	    throw new TypeError("Cannot call a class as a function");
+	  }
+	};
+
+	/**
+	 * HTTP Response.
+	 */
+
+	var Response = function () {
+	    function Response(body, _ref) {
+	        var url = _ref.url;
+	        var headers = _ref.headers;
+	        var status = _ref.status;
+	        var statusText = _ref.statusText;
+	        classCallCheck(this, Response);
+
+
+	        this.url = url;
+	        this.body = body;
+	        this.headers = headers || {};
+	        this.status = status || 0;
+	        this.statusText = statusText || '';
+	        this.ok = status >= 200 && status < 300;
+	    }
+
+	    Response.prototype.text = function text() {
+	        return this.body;
+	    };
+
+	    Response.prototype.blob = function blob() {
+	        return new Blob([this.body]);
+	    };
+
+	    Response.prototype.json = function json() {
+	        return JSON.parse(this.body);
+	    };
+
+	    return Response;
+	}();
+
+	var Request = function () {
+	    function Request(options) {
+	        classCallCheck(this, Request);
+
+
+	        this.method = 'GET';
+	        this.body = null;
+	        this.params = {};
+	        this.headers = {};
+
+	        assign(this, options);
+	    }
+
+	    Request.prototype.getUrl = function getUrl() {
+	        return Url(this);
+	    };
+
+	    Request.prototype.getBody = function getBody() {
+	        return this.body;
+	    };
+
+	    Request.prototype.respondWith = function respondWith(body, options) {
+	        return new Response(body, assign(options || {}, { url: this.getUrl() }));
+	    };
+
+	    return Request;
+	}();
+
+	/**
+	 * Service for sending network requests.
+	 */
+
+	var CUSTOM_HEADERS = { 'X-Requested-With': 'XMLHttpRequest' };
+	var COMMON_HEADERS = { 'Accept': 'application/json, text/plain, */*' };
+	var JSON_CONTENT_TYPE = { 'Content-Type': 'application/json;charset=utf-8' };
+
+	function Http(options) {
+
+	    var self = this || {},
+	        client = Client(self.$vm);
+
+	    defaults(options || {}, self.$options, Http.options);
+
+	    Http.interceptors.forEach(function (handler) {
+	        client.use(handler);
+	    });
+
+	    return client(new Request(options)).then(function (response) {
+
+	        return response.ok ? response : Promise$1.reject(response);
+	    }, function (response) {
+
+	        if (response instanceof Error) {
+	            error(response);
+	        }
+
+	        return Promise$1.reject(response);
+	    });
+	}
+
+	Http.options = {};
+
+	Http.headers = {
+	    put: JSON_CONTENT_TYPE,
+	    post: JSON_CONTENT_TYPE,
+	    patch: JSON_CONTENT_TYPE,
+	    delete: JSON_CONTENT_TYPE,
+	    custom: CUSTOM_HEADERS,
+	    common: COMMON_HEADERS
+	};
+
+	Http.interceptors = [before, timeout, method, body, jsonp, header, cors];
+
+	['get', 'delete', 'head', 'jsonp'].forEach(function (method) {
+
+	    Http[method] = function (url, options) {
+	        return this(assign(options || {}, { url: url, method: method }));
+	    };
+	});
+
+	['post', 'put', 'patch'].forEach(function (method) {
+
+	    Http[method] = function (url, body, options) {
+	        return this(assign(options || {}, { url: url, method: method, body: body }));
+	    };
+	});
+
+	function Resource(url, params, actions, options) {
+
+	    var self = this || {},
+	        resource = {};
+
+	    actions = assign({}, Resource.actions, actions);
+
+	    each(actions, function (action, name) {
+
+	        action = merge({ url: url, params: params || {} }, options, action);
+
+	        resource[name] = function () {
+	            return (self.$http || Http)(opts(action, arguments));
+	        };
+	    });
+
+	    return resource;
+	}
+
+	function opts(action, args) {
+
+	    var options = assign({}, action),
+	        params = {},
+	        body;
+
+	    switch (args.length) {
+
+	        case 2:
+
+	            params = args[0];
+	            body = args[1];
+
+	            break;
+
+	        case 1:
+
+	            if (/^(POST|PUT|PATCH)$/i.test(options.method)) {
+	                body = args[0];
+	            } else {
+	                params = args[0];
+	            }
+
+	            break;
+
+	        case 0:
+
+	            break;
+
+	        default:
+
+	            throw 'Expected up to 4 arguments [params, body], got ' + args.length + ' arguments';
+	    }
+
+	    options.body = body;
+	    options.params = assign({}, options.params, params);
+
+	    return options;
+	}
+
+	Resource.actions = {
+
+	    get: { method: 'GET' },
+	    save: { method: 'POST' },
+	    query: { method: 'GET' },
+	    update: { method: 'PUT' },
+	    remove: { method: 'DELETE' },
+	    delete: { method: 'DELETE' }
+
+	};
+
+	function plugin(Vue) {
+
+	    if (plugin.installed) {
+	        return;
+	    }
+
+	    Util(Vue);
+
+	    Vue.url = Url;
+	    Vue.http = Http;
+	    Vue.resource = Resource;
+	    Vue.Promise = Promise$1;
+
+	    Object.defineProperties(Vue.prototype, {
+
+	        $url: {
+	            get: function () {
+	                return options(Vue.url, this, this.$options.url);
+	            }
+	        },
+
+	        $http: {
+	            get: function () {
+	                return options(Vue.http, this, this.$options.http);
+	            }
+	        },
+
+	        $resource: {
+	            get: function () {
+	                return Vue.resource.bind(this);
+	            }
+	        },
+
+	        $promise: {
+	            get: function () {
+	                var _this = this;
+
+	                return function (executor) {
+	                    return new Vue.Promise(executor, _this);
+	                };
+	            }
+	        }
+
+	    });
+	}
+
+	if (typeof window !== 'undefined' && window.Vue) {
+	    window.Vue.use(plugin);
+	}
+
+	module.exports = plugin;
+
+/***/ },
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(4)
+	__vue_script__ = __webpack_require__(5)
 	if (__vue_script__ &&
 	    __vue_script__.__esModule &&
 	    Object.keys(__vue_script__).length > 1) {
 	  console.warn("[vue-loader] app/App.vue: named exports in *.vue files are ignored.")}
-	__vue_template__ = __webpack_require__(22)
+	__vue_template__ = __webpack_require__(46)
 	module.exports = __vue_script__ || {}
 	if (module.exports.__esModule) module.exports = module.exports.default
 	if (__vue_template__) {
@@ -10295,7 +11618,7 @@
 	})()}
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -10304,23 +11627,11 @@
 	  value: true
 	});
 
-	var _store = __webpack_require__(5);
+	var _defineProperty2 = __webpack_require__(6);
 
-	var _store2 = _interopRequireDefault(_store);
+	var _defineProperty3 = _interopRequireDefault(_defineProperty2);
 
-	var _Sidebar = __webpack_require__(6);
-
-	var _Sidebar2 = _interopRequireDefault(_Sidebar);
-
-	var _BookmarkList = __webpack_require__(15);
-
-	var _BookmarkList2 = _interopRequireDefault(_BookmarkList);
-
-	var _filters = __webpack_require__(20);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	// <template>
+	var _components$data$filt; // <template>
 	//   <div id="app">
 	//     <sidebar
 	//       :categories="categories"
@@ -10334,7 +11645,25 @@
 	// </template>
 	//
 	// <script>
-	exports.default = {
+
+
+	var _store = __webpack_require__(10);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	var _Sidebar = __webpack_require__(30);
+
+	var _Sidebar2 = _interopRequireDefault(_Sidebar);
+
+	var _BookmarkList = __webpack_require__(39);
+
+	var _BookmarkList2 = _interopRequireDefault(_BookmarkList);
+
+	var _filters = __webpack_require__(44);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = (_components$data$filt = {
 
 	  components: {
 	    Sidebar: _Sidebar2.default,
@@ -10352,30 +11681,117 @@
 
 	  filters: {
 	    filterByCategory: _filters.filterByCategory
-	  },
-
-	  created: function created() {
-	    _store2.default.on('data-updated', this.updateListings);
-	    _store2.default.setDefaultData();
-	  },
-
-
-	  methods: {
-	    updateListings: function updateListings(categories, bookmarks) {
-	      this.categories = categories;
-	      this.bookmarks = bookmarks;
-	    },
-	    setSelectedCategory: function setSelectedCategory(category) {
-	      this.selectedCategory = category;
-	    }
 	  }
 
-	};
+	}, (0, _defineProperty3.default)(_components$data$filt, 'data', function data() {
+	  return {
+	    list: []
+	  };
+	}), (0, _defineProperty3.default)(_components$data$filt, 'created', function created() {
+	  _store2.default.on('data-updated', this.updateListings);
+	  _store2.default.setDefaultData();
+
+	  this.fetchTaskList();
+	}), (0, _defineProperty3.default)(_components$data$filt, 'methods', {
+	  fetchTaskList: function fetchTaskList() {
+
+	    var resource = this.$resource('api/tasks{/id}');
+
+	    // resource.get((tasks) => { // api/tasks
+	    //   console.log(tasks)
+	    // })
+
+	    resource.get().then(function (response) {
+	      console.log(response);
+	    });
+
+	    // resource.get({ id: 5}, (task) => { // api/tasks/5
+	    //   console.log(task)
+	    // })
+
+	    // resource.update({ id: 5}, { body: 'Updated body'}, (task) => { // /api/tasks/5
+	    //   console.log(task)
+	    // })
+
+	    // this.$http.get('api/taks', (tasks) => {
+	    //   console.log(tasks)
+	    // })
+	  },
+	  updateListings: function updateListings(categories, bookmarks) {
+	    this.categories = categories;
+	    this.bookmarks = bookmarks;
+	  },
+	  setSelectedCategory: function setSelectedCategory(category) {
+	    this.selectedCategory = category;
+	  }
+	}), _components$data$filt);
 
 	// </script>
 
 /***/ },
-/* 5 */
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	exports.__esModule = true;
+
+	var _defineProperty = __webpack_require__(7);
+
+	var _defineProperty2 = _interopRequireDefault(_defineProperty);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = function (obj, key, value) {
+	  if (key in obj) {
+	    (0, _defineProperty2.default)(obj, key, {
+	      value: value,
+	      enumerable: true,
+	      configurable: true,
+	      writable: true
+	    });
+	  } else {
+	    obj[key] = value;
+	  }
+
+	  return obj;
+	};
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = { "default": __webpack_require__(8), __esModule: true };
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var $ = __webpack_require__(9);
+	module.exports = function defineProperty(it, key, desc){
+	  return $.setDesc(it, key, desc);
+	};
+
+/***/ },
+/* 9 */
+/***/ function(module, exports) {
+
+	var $Object = Object;
+	module.exports = {
+	  create:     $Object.create,
+	  getProto:   $Object.getPrototypeOf,
+	  isEnum:     {}.propertyIsEnumerable,
+	  getDesc:    $Object.getOwnPropertyDescriptor,
+	  setDesc:    $Object.defineProperty,
+	  setDescs:   $Object.defineProperties,
+	  getKeys:    $Object.keys,
+	  getNames:   $Object.getOwnPropertyNames,
+	  getSymbols: $Object.getOwnPropertySymbols,
+	  each:       [].forEach
+	};
+
+/***/ },
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -10384,15 +11800,15 @@
 	  value: true
 	});
 
-	var _keys = __webpack_require__(23);
+	var _keys = __webpack_require__(11);
 
 	var _keys2 = _interopRequireDefault(_keys);
 
-	var _assign = __webpack_require__(35);
+	var _assign = __webpack_require__(23);
 
 	var _assign2 = _interopRequireDefault(_assign);
 
-	var _events = __webpack_require__(42);
+	var _events = __webpack_require__(29);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -10507,624 +11923,43 @@
 	exports.default = store;
 
 /***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(7)
-	if (__vue_script__ &&
-	    __vue_script__.__esModule &&
-	    Object.keys(__vue_script__).length > 1) {
-	  console.warn("[vue-loader] app/components/Sidebar.vue: named exports in *.vue files are ignored.")}
-	__vue_template__ = __webpack_require__(14)
-	module.exports = __vue_script__ || {}
-	if (module.exports.__esModule) module.exports = module.exports.default
-	if (__vue_template__) {
-	(typeof module.exports === "function" ? (module.exports.options || (module.exports.options = {})) : module.exports).template = __vue_template__
-	}
-	if (false) {(function () {  module.hot.accept()
-	  var hotAPI = require("vue-hot-reload-api")
-	  hotAPI.install(require("vue"), false)
-	  if (!hotAPI.compatible) return
-	  var id = "_v-65637942/Sidebar.vue"
-	  if (!module.hot.data) {
-	    hotAPI.createRecord(id, module.exports)
-	  } else {
-	    hotAPI.update(id, module.exports, __vue_template__)
-	  }
-	})()}
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _store = __webpack_require__(5);
-
-	var _store2 = _interopRequireDefault(_store);
-
-	var _CategoryModal = __webpack_require__(8);
-
-	var _CategoryModal2 = _interopRequireDefault(_CategoryModal);
-
-	var _BookmarkModal = __webpack_require__(11);
-
-	var _BookmarkModal2 = _interopRequireDefault(_BookmarkModal);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	exports.default = {
-	  data: function data() {
-	    return {
-	      selectedCategory: ''
-	    };
-	  },
-
-
-	  props: ['categories'],
-
-	  components: {
-	    CategoryModal: _CategoryModal2.default,
-	    BookmarkModal: _BookmarkModal2.default
-	  },
-
-	  methods: {
-	    addBookmark: function addBookmark() {
-	      this.$broadcast('add-bookmark');
-	    },
-	    addCategory: function addCategory() {
-	      this.$broadcast('add-category');
-	    },
-	    deleteCategory: function deleteCategory(category) {
-	      _store2.default.deleteCategory(category);
-	    },
-	    categorySelected: function categorySelected(category) {
-	      this.selectedCategory = category;
-	      this.$dispatch('category-selected', category);
-	    }
-	  }
-
-	};
-	// </script>
-	// <template>
-	//   <div>
-	//     <div id="categories">
-	//       <div id="cat-header">
-	//         <h2><i class="bookmark icon"></i>Links.app | nlattessi</h2>
-	//       </div>
-	//       <div class="container">
-	//         <h2>Categories
-	//           <span class="clickable right-float">
-	//             <i @click="addCategory" class="add icon"></i>
-	//           </span>
-	//         </h2>
-	//         <div class="ui list">
-	//           <div class="item clickable">
-	//             <div class="content">
-	//               <a href="" class="ui grey empty circular label"></a>
-	//               <span @click="categorySelected('')">All</span>
-	//             </div>
-	//           </div>
-	//           <div v-for="(name, color) in categories" class="item clickable">
-	//             <div class="content">
-	//               <a class="ui {{ color }} empty circular label"></a>
-	//               <span @click="categorySelected(name)"
-	//                 :class="{selected: selectedCategory === name}">
-	//                 {{ name }}
-	//               </span>
-	//               <i v-if="name !== 'Uncategorized'" class="remove icon right-float"
-	//                 @click="deleteCategory(name)">
-	//               </i>
-	//             </div>
-	//           </div>
-	//         </div>
-	//         <button @click="addBookmark"
-	//           class="ui grey inverted basic icon circular button right-float">
-	//           <i class="icon add"></i>
-	//         </button>
-	//       </div>
-	//     </div>
-	//     <category-modal></category-modal>
-	//     <bookmark-modal :categories="categories"></bookmark-modal>
-	//   </div>
-	// </template>
-	//
-	// <script>
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(9)
-	if (__vue_script__ &&
-	    __vue_script__.__esModule &&
-	    Object.keys(__vue_script__).length > 1) {
-	  console.warn("[vue-loader] app/components/CategoryModal.vue: named exports in *.vue files are ignored.")}
-	__vue_template__ = __webpack_require__(10)
-	module.exports = __vue_script__ || {}
-	if (module.exports.__esModule) module.exports = module.exports.default
-	if (__vue_template__) {
-	(typeof module.exports === "function" ? (module.exports.options || (module.exports.options = {})) : module.exports).template = __vue_template__
-	}
-	if (false) {(function () {  module.hot.accept()
-	  var hotAPI = require("vue-hot-reload-api")
-	  hotAPI.install(require("vue"), false)
-	  if (!hotAPI.compatible) return
-	  var id = "_v-793fc635/CategoryModal.vue"
-	  if (!module.hot.data) {
-	    hotAPI.createRecord(id, module.exports)
-	  } else {
-	    hotAPI.update(id, module.exports, __vue_template__)
-	  }
-	})()}
-
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _store = __webpack_require__(5);
-
-	var _store2 = _interopRequireDefault(_store);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	exports.default = {
-	  data: function data() {
-	    return {
-	      catName: '',
-	      catColor: '',
-	      categoryColors: ['red', 'orange', 'yellow', 'olive', 'green', 'teal', 'blue', 'violet', 'purple', 'pink', 'brown', 'grey', 'black']
-	    };
-	  },
-
-
-	  methods: {
-	    addCategory: function addCategory() {
-	      var newCategory = {};
-	      newCategory[this.catName] = this.catColor;
-	      _store2.default.addCategory(newCategory);
-	      $('#cat-modal').modal('hide');
-	    }
-	  },
-
-	  events: {
-
-	    'add-category': function addCategory() {
-	      this.catName = this.catColor = '';
-	      $('#cat-modal').modal('show');
-	    }
-
-	  }
-
-	};
-	// </script>
-	// <template>
-	//   <div id="cat-modal" class="ui small modal">
-	//     <i class="close icon"></i>
-	//     <div class="header">
-	//       Add a new category
-	//     </div>
-	//     <div class="content">
-	//       <form class="ui form">
-	//         <div class="field">
-	//           <label>Category name</label>
-	//           <input v-model="catName" type="text" placeholder="Enter a category name...">
-	//         </div>
-	//         <div class="field">
-	//           <label>Category color</label>
-	//           <select v-model="catColor" class="ui simple dropdown">
-	//             <option value="">Select a color</option>
-	//             <option v-for="color in categoryColors"
-	//               value="{{color}}">
-	//               {{color | capitalize}}
-	//             </option>
-	//           </select>
-	//         </div>
-	//       </form>
-	//     </div>
-	//     <div class="actions">
-	//       <div @click="addCategory" class="ui purple inverted button">Save</div>
-	//     </div>
-	//   </div>
-	// </template>
-	//
-	// <script>
-
-/***/ },
-/* 10 */
-/***/ function(module, exports) {
-
-	module.exports = "\n<div id=\"cat-modal\" class=\"ui small modal\">\n  <i class=\"close icon\"></i>\n  <div class=\"header\">\n    Add a new category\n  </div>\n  <div class=\"content\">\n    <form class=\"ui form\">\n      <div class=\"field\">\n        <label>Category name</label>\n        <input v-model=\"catName\" type=\"text\" placeholder=\"Enter a category name...\">\n      </div>\n      <div class=\"field\">\n        <label>Category color</label>\n        <select v-model=\"catColor\" class=\"ui simple dropdown\">\n          <option value=\"\">Select a color</option>\n          <option v-for=\"color in categoryColors\"\n            value=\"{{color}}\">\n            {{color | capitalize}}\n          </option>\n        </select>\n      </div>\n    </form>\n  </div>\n  <div class=\"actions\">\n    <div @click=\"addCategory\" class=\"ui purple inverted button\">Save</div>\n  </div>\n</div>\n";
-
-/***/ },
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(12)
-	if (__vue_script__ &&
-	    __vue_script__.__esModule &&
-	    Object.keys(__vue_script__).length > 1) {
-	  console.warn("[vue-loader] app/components/BookmarkModal.vue: named exports in *.vue files are ignored.")}
-	__vue_template__ = __webpack_require__(13)
-	module.exports = __vue_script__ || {}
-	if (module.exports.__esModule) module.exports = module.exports.default
-	if (__vue_template__) {
-	(typeof module.exports === "function" ? (module.exports.options || (module.exports.options = {})) : module.exports).template = __vue_template__
-	}
-	if (false) {(function () {  module.hot.accept()
-	  var hotAPI = require("vue-hot-reload-api")
-	  hotAPI.install(require("vue"), false)
-	  if (!hotAPI.compatible) return
-	  var id = "_v-505ec606/BookmarkModal.vue"
-	  if (!module.hot.data) {
-	    hotAPI.createRecord(id, module.exports)
-	  } else {
-	    hotAPI.update(id, module.exports, __vue_template__)
-	  }
-	})()}
+	module.exports = { "default": __webpack_require__(12), __esModule: true };
 
 /***/ },
 /* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _store = __webpack_require__(5);
-
-	var _store2 = _interopRequireDefault(_store);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	exports.default = {
-	  data: function data() {
-	    return {
-	      bookmarkTitle: '',
-	      bookmarkUrl: '',
-	      bookmarkCategory: ''
-	    };
-	  },
-
-
-	  props: ['categories'],
-
-	  methods: {
-	    addBookmark: function addBookmark() {
-	      var newBookmark = {
-	        title: this.bookmarkTitle,
-	        url: this.bookmarkUrl,
-	        category: this.bookmarkCategory
-	      };
-	      _store2.default.addBookmark(newBookmark);
-	      $('#bookmark-modal').modal('hide');
-	    }
-	  },
-
-	  events: {
-
-	    'add-bookmark': function addBookmark() {
-	      this.bookmarkTitle = this.bookmarkUrl = this.bookmarkCategory = '';
-	      $('#bookmark-modal').modal('show');
-	    }
-
-	  }
-
-	};
-	// </script>
-	// <template>
-	//   <div id="bookmark-modal" class="ui small modal">
-	//     <i class="close icon"></i>
-	//     <div class="header">
-	//       Add a new bookmark
-	//     </div>
-	//     <div class="content">
-	//       <form class="ui form">
-	//         <div class="field">
-	//           <label>Bookmark Title</label>
-	//           <input v-model="bookmarkTitle" type="text" placeholder="Enter a title for your bookmark...">
-	//         </div>
-	//         <div class="field">
-	//           <label>Bookmark URL</label>
-	//           <input v-model="bookmarkUrl" type="text" placeholder="Enter the URL for your bookmark...">
-	//         </div>
-	//         <div class="field">
-	//           <label>Bookmark category</label>
-	//           <select v-model="bookmarkCategory" class="ui simple dropdown">
-	//             <option value="">Select a category</option>
-	//             <template v-for="(name, color) in categories">
-	//               <option value="{{ name }}">{{ name }}</option>
-	//             </template>
-	//           </select>
-	//         </div>
-	//       </form>
-	//     </div>
-	//     <div class="actions">
-	//       <div @click="addBookmark" class="ui purple inverted button">Add</div>
-	//     </div>
-	//   </div>
-	// </template>
-	//
-	// <script>
+	__webpack_require__(13);
+	module.exports = __webpack_require__(19).Object.keys;
 
 /***/ },
 /* 13 */
-/***/ function(module, exports) {
-
-	module.exports = "\n<div id=\"bookmark-modal\" class=\"ui small modal\">\n  <i class=\"close icon\"></i>\n  <div class=\"header\">\n    Add a new bookmark\n  </div>\n  <div class=\"content\">\n    <form class=\"ui form\">\n      <div class=\"field\">\n        <label>Bookmark Title</label>\n        <input v-model=\"bookmarkTitle\" type=\"text\" placeholder=\"Enter a title for your bookmark...\">\n      </div>\n      <div class=\"field\">\n        <label>Bookmark URL</label>\n        <input v-model=\"bookmarkUrl\" type=\"text\" placeholder=\"Enter the URL for your bookmark...\">\n      </div>\n      <div class=\"field\">\n        <label>Bookmark category</label>\n        <select v-model=\"bookmarkCategory\" class=\"ui simple dropdown\">\n          <option value=\"\">Select a category</option>\n          <template v-for=\"(name, color) in categories\">\n            <option value=\"{{ name }}\">{{ name }}</option>\n          </template>\n        </select>\n      </div>\n    </form>\n  </div>\n  <div class=\"actions\">\n    <div @click=\"addBookmark\" class=\"ui purple inverted button\">Add</div>\n  </div>\n</div>\n";
-
-/***/ },
-/* 14 */
-/***/ function(module, exports) {
-
-	module.exports = "\n<div>\n  <div id=\"categories\">\n    <div id=\"cat-header\">\n      <h2><i class=\"bookmark icon\"></i>Links.app | nlattessi</h2>\n    </div>\n    <div class=\"container\">\n      <h2>Categories\n        <span class=\"clickable right-float\">\n          <i @click=\"addCategory\" class=\"add icon\"></i>\n        </span>\n      </h2>\n      <div class=\"ui list\">\n        <div class=\"item clickable\">\n          <div class=\"content\">\n            <a href=\"\" class=\"ui grey empty circular label\"></a>\n            <span @click=\"categorySelected('')\">All</span>\n          </div>\n        </div>\n        <div v-for=\"(name, color) in categories\" class=\"item clickable\">\n          <div class=\"content\">\n            <a class=\"ui {{ color }} empty circular label\"></a>\n            <span @click=\"categorySelected(name)\"\n              :class=\"{selected: selectedCategory === name}\">\n              {{ name }}\n            </span>\n            <i v-if=\"name !== 'Uncategorized'\" class=\"remove icon right-float\"\n              @click=\"deleteCategory(name)\">\n            </i>\n          </div>\n        </div>\n      </div>\n      <button @click=\"addBookmark\"\n        class=\"ui grey inverted basic icon circular button right-float\">\n        <i class=\"icon add\"></i>\n      </button>\n    </div>\n  </div>\n  <category-modal></category-modal>\n  <bookmark-modal :categories=\"categories\"></bookmark-modal>\n</div>\n";
-
-/***/ },
-/* 15 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(16)
-	if (__vue_script__ &&
-	    __vue_script__.__esModule &&
-	    Object.keys(__vue_script__).length > 1) {
-	  console.warn("[vue-loader] app/components/BookmarkList.vue: named exports in *.vue files are ignored.")}
-	__vue_template__ = __webpack_require__(21)
-	module.exports = __vue_script__ || {}
-	if (module.exports.__esModule) module.exports = module.exports.default
-	if (__vue_template__) {
-	(typeof module.exports === "function" ? (module.exports.options || (module.exports.options = {})) : module.exports).template = __vue_template__
-	}
-	if (false) {(function () {  module.hot.accept()
-	  var hotAPI = require("vue-hot-reload-api")
-	  hotAPI.install(require("vue"), false)
-	  if (!hotAPI.compatible) return
-	  var id = "_v-19202efe/BookmarkList.vue"
-	  if (!module.hot.data) {
-	    hotAPI.createRecord(id, module.exports)
-	  } else {
-	    hotAPI.update(id, module.exports, __vue_template__)
-	  }
-	})()}
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _Bookmark = __webpack_require__(17);
-
-	var _Bookmark2 = _interopRequireDefault(_Bookmark);
-
-	var _filters = __webpack_require__(20);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	// <template>
-	//   <div id="links-container">
-	//     <div id="toolbar">
-	//       <div class="ui inverted icon fluid input">
-	//         <input v-model="query" type="text" placeholder="Filter your links...">
-	//         <i class="search icon"></i>
-	//       </div>
-	//     </div>
-	//     <div class="ui relaxed divided selection list">
-	//       <bookmark v-for="(id, bookmark) in bookmarks | filterByTitle query"
-	//         :id="id"
-	//         :title="bookmark.title"
-	//         :url="bookmark.url"
-	//         :category="bookmark.category"
-	//         :category-color="categories[bookmark.category]">
-	//       </bookmark>
-	//     </div>
-	//   </div>
-	// </template>
-	//
-	// <script>
-	exports.default = {
-	  data: function data() {
-	    return {
-	      query: ''
-	    };
-	  },
-
-
-	  props: ['bookmarks', 'categories'],
-
-	  components: {
-	    Bookmark: _Bookmark2.default
-	  },
-
-	  filters: {
-	    filterByTitle: _filters.filterByTitle
-	  }
-
-	};
-
-	// </script>
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(18)
-	if (__vue_script__ &&
-	    __vue_script__.__esModule &&
-	    Object.keys(__vue_script__).length > 1) {
-	  console.warn("[vue-loader] app/components/Bookmark.vue: named exports in *.vue files are ignored.")}
-	__vue_template__ = __webpack_require__(19)
-	module.exports = __vue_script__ || {}
-	if (module.exports.__esModule) module.exports = module.exports.default
-	if (__vue_template__) {
-	(typeof module.exports === "function" ? (module.exports.options || (module.exports.options = {})) : module.exports).template = __vue_template__
-	}
-	if (false) {(function () {  module.hot.accept()
-	  var hotAPI = require("vue-hot-reload-api")
-	  hotAPI.install(require("vue"), false)
-	  if (!hotAPI.compatible) return
-	  var id = "_v-9773a580/Bookmark.vue"
-	  if (!module.hot.data) {
-	    hotAPI.createRecord(id, module.exports)
-	  } else {
-	    hotAPI.update(id, module.exports, __vue_template__)
-	  }
-	})()}
-
-/***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _store = __webpack_require__(5);
-
-	var _store2 = _interopRequireDefault(_store);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	exports.default = {
-
-	  props: ['id', 'title', 'url', 'category', 'categoryColor'],
-
-	  methods: {
-	    deleteBookmark: function deleteBookmark() {
-	      _store2.default.deleteBookmark(this.id);
-	    },
-	    openLink: function openLink() {
-	      // TODO: open link
-	    }
-	  }
-
-	};
-
-	// </script>
-	// <template>
-	//   <div @click="openLink" class="item">
-	//     <div class="content">
-	//       <i @click.stop="deleteBookmark" class="icon remove right-float"></i>
-	//       <a class="header">{{title}}</a>
-	//       <div class="description">
-	//         {{url}}
-	//         <a class="ui {{categoryColor}} tiny label right-float">{{category}}</a>
-	//       </div>
-	//     </div>
-	//   </div>
-	// </template>
-	//
-	// <script>
-
-/***/ },
-/* 19 */
-/***/ function(module, exports) {
-
-	module.exports = "\n<div @click=\"openLink\" class=\"item\">\n  <div class=\"content\">\n    <i @click.stop=\"deleteBookmark\" class=\"icon remove right-float\"></i>\n    <a class=\"header\">{{title}}</a>\n    <div class=\"description\">\n      {{url}}\n      <a class=\"ui {{categoryColor}} tiny label right-float\">{{category}}</a>\n    </div>\n  </div>\n</div>\n";
-
-/***/ },
-/* 20 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.filterByTitle = filterByTitle;
-	exports.filterByCategory = filterByCategory;
-	function filterByTitle(value, title) {
-	  return filterBookmarks(value, 'title', title);
-	}
-
-	function filterByCategory(value, category) {
-	  if (!category) return value;
-	  return filterBookmarks(value, 'category', category);
-	}
-
-	// TODO: refactor to functional programming
-	function filterBookmarks(bookmarks, filterBy, filterValue) {
-	  var filteredBookmarks = {};
-	  for (var bookmark in bookmarks) {
-	    if (bookmarks[bookmark][filterBy].indexOf(filterValue) > -1) {
-	      filteredBookmarks[bookmark] = bookmarks[bookmark];
-	    }
-	  }
-	  return filteredBookmarks;
-	}
-
-/***/ },
-/* 21 */
-/***/ function(module, exports) {
-
-	module.exports = "\n<div id=\"links-container\">\n  <div id=\"toolbar\">\n    <div class=\"ui inverted icon fluid input\">\n      <input v-model=\"query\" type=\"text\" placeholder=\"Filter your links...\">\n      <i class=\"search icon\"></i>\n    </div>\n  </div>\n  <div class=\"ui relaxed divided selection list\">\n    <bookmark v-for=\"(id, bookmark) in bookmarks | filterByTitle query\"\n      :id=\"id\"\n      :title=\"bookmark.title\"\n      :url=\"bookmark.url\"\n      :category=\"bookmark.category\"\n      :category-color=\"categories[bookmark.category]\">\n    </bookmark>\n  </div>\n</div>\n";
-
-/***/ },
-/* 22 */
-/***/ function(module, exports) {
-
-	module.exports = "\n<div id=\"app\">\n  <sidebar\n    :categories=\"categories\"\n    v-on:category-selected=\"setSelectedCategory\">\n  </sidebar>\n  <bookmark-list\n    :bookmarks=\"bookmarks | filterByCategory selectedCategory\"\n    :categories=\"categories\">\n  </bookmark-list>\n</div>\n";
-
-/***/ },
-/* 23 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = { "default": __webpack_require__(24), __esModule: true };
-
-/***/ },
-/* 24 */
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(25);
-	module.exports = __webpack_require__(31).Object.keys;
-
-/***/ },
-/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 19.1.2.14 Object.keys(O)
-	var toObject = __webpack_require__(26);
+	var toObject = __webpack_require__(14);
 
-	__webpack_require__(28)('keys', function($keys){
+	__webpack_require__(16)('keys', function($keys){
 	  return function keys(it){
 	    return $keys(toObject(it));
 	  };
 	});
 
 /***/ },
-/* 26 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 7.1.13 ToObject(argument)
-	var defined = __webpack_require__(27);
+	var defined = __webpack_require__(15);
 	module.exports = function(it){
 	  return Object(defined(it));
 	};
 
 /***/ },
-/* 27 */
+/* 15 */
 /***/ function(module, exports) {
 
 	// 7.2.1 RequireObjectCoercible(argument)
@@ -11134,13 +11969,13 @@
 	};
 
 /***/ },
-/* 28 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// most Object methods by ES6 should accept primitives
-	var $export = __webpack_require__(29)
-	  , core    = __webpack_require__(31)
-	  , fails   = __webpack_require__(34);
+	var $export = __webpack_require__(17)
+	  , core    = __webpack_require__(19)
+	  , fails   = __webpack_require__(22);
 	module.exports = function(KEY, exec){
 	  var fn  = (core.Object || {})[KEY] || Object[KEY]
 	    , exp = {};
@@ -11149,12 +11984,12 @@
 	};
 
 /***/ },
-/* 29 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var global    = __webpack_require__(30)
-	  , core      = __webpack_require__(31)
-	  , ctx       = __webpack_require__(32)
+	var global    = __webpack_require__(18)
+	  , core      = __webpack_require__(19)
+	  , ctx       = __webpack_require__(20)
 	  , PROTOTYPE = 'prototype';
 
 	var $export = function(type, name, source){
@@ -11200,7 +12035,7 @@
 	module.exports = $export;
 
 /***/ },
-/* 30 */
+/* 18 */
 /***/ function(module, exports) {
 
 	// https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
@@ -11209,18 +12044,18 @@
 	if(typeof __g == 'number')__g = global; // eslint-disable-line no-undef
 
 /***/ },
-/* 31 */
+/* 19 */
 /***/ function(module, exports) {
 
 	var core = module.exports = {version: '1.2.6'};
 	if(typeof __e == 'number')__e = core; // eslint-disable-line no-undef
 
 /***/ },
-/* 32 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// optional / simple context binding
-	var aFunction = __webpack_require__(33);
+	var aFunction = __webpack_require__(21);
 	module.exports = function(fn, that, length){
 	  aFunction(fn);
 	  if(that === undefined)return fn;
@@ -11241,7 +12076,7 @@
 	};
 
 /***/ },
-/* 33 */
+/* 21 */
 /***/ function(module, exports) {
 
 	module.exports = function(it){
@@ -11250,7 +12085,7 @@
 	};
 
 /***/ },
-/* 34 */
+/* 22 */
 /***/ function(module, exports) {
 
 	module.exports = function(exec){
@@ -11262,38 +12097,38 @@
 	};
 
 /***/ },
-/* 35 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = { "default": __webpack_require__(36), __esModule: true };
+	module.exports = { "default": __webpack_require__(24), __esModule: true };
 
 /***/ },
-/* 36 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(37);
-	module.exports = __webpack_require__(31).Object.assign;
+	__webpack_require__(25);
+	module.exports = __webpack_require__(19).Object.assign;
 
 /***/ },
-/* 37 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 19.1.3.1 Object.assign(target, source)
-	var $export = __webpack_require__(29);
+	var $export = __webpack_require__(17);
 
-	$export($export.S + $export.F, 'Object', {assign: __webpack_require__(38)});
+	$export($export.S + $export.F, 'Object', {assign: __webpack_require__(26)});
 
 /***/ },
-/* 38 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 19.1.2.1 Object.assign(target, source, ...)
-	var $        = __webpack_require__(39)
-	  , toObject = __webpack_require__(26)
-	  , IObject  = __webpack_require__(40);
+	var $        = __webpack_require__(9)
+	  , toObject = __webpack_require__(14)
+	  , IObject  = __webpack_require__(27);
 
 	// should work with symbols and should have deterministic property order (V8 bug)
-	module.exports = __webpack_require__(34)(function(){
+	module.exports = __webpack_require__(22)(function(){
 	  var a = Object.assign
 	    , A = {}
 	    , B = {}
@@ -11322,35 +12157,17 @@
 	} : Object.assign;
 
 /***/ },
-/* 39 */
-/***/ function(module, exports) {
-
-	var $Object = Object;
-	module.exports = {
-	  create:     $Object.create,
-	  getProto:   $Object.getPrototypeOf,
-	  isEnum:     {}.propertyIsEnumerable,
-	  getDesc:    $Object.getOwnPropertyDescriptor,
-	  setDesc:    $Object.defineProperty,
-	  setDescs:   $Object.defineProperties,
-	  getKeys:    $Object.keys,
-	  getNames:   $Object.getOwnPropertyNames,
-	  getSymbols: $Object.getOwnPropertySymbols,
-	  each:       [].forEach
-	};
-
-/***/ },
-/* 40 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// fallback for non-array-like ES3 and non-enumerable old V8 strings
-	var cof = __webpack_require__(41);
+	var cof = __webpack_require__(28);
 	module.exports = Object('z').propertyIsEnumerable(0) ? Object : function(it){
 	  return cof(it) == 'String' ? it.split('') : Object(it);
 	};
 
 /***/ },
-/* 41 */
+/* 28 */
 /***/ function(module, exports) {
 
 	var toString = {}.toString;
@@ -11360,7 +12177,7 @@
 	};
 
 /***/ },
-/* 42 */
+/* 29 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -11666,6 +12483,587 @@
 	  return arg === void 0;
 	}
 
+
+/***/ },
+/* 30 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __vue_script__, __vue_template__
+	__vue_script__ = __webpack_require__(31)
+	if (__vue_script__ &&
+	    __vue_script__.__esModule &&
+	    Object.keys(__vue_script__).length > 1) {
+	  console.warn("[vue-loader] app/components/Sidebar.vue: named exports in *.vue files are ignored.")}
+	__vue_template__ = __webpack_require__(38)
+	module.exports = __vue_script__ || {}
+	if (module.exports.__esModule) module.exports = module.exports.default
+	if (__vue_template__) {
+	(typeof module.exports === "function" ? (module.exports.options || (module.exports.options = {})) : module.exports).template = __vue_template__
+	}
+	if (false) {(function () {  module.hot.accept()
+	  var hotAPI = require("vue-hot-reload-api")
+	  hotAPI.install(require("vue"), false)
+	  if (!hotAPI.compatible) return
+	  var id = "_v-65637942/Sidebar.vue"
+	  if (!module.hot.data) {
+	    hotAPI.createRecord(id, module.exports)
+	  } else {
+	    hotAPI.update(id, module.exports, __vue_template__)
+	  }
+	})()}
+
+/***/ },
+/* 31 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _store = __webpack_require__(10);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	var _CategoryModal = __webpack_require__(32);
+
+	var _CategoryModal2 = _interopRequireDefault(_CategoryModal);
+
+	var _BookmarkModal = __webpack_require__(35);
+
+	var _BookmarkModal2 = _interopRequireDefault(_BookmarkModal);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = {
+	  data: function data() {
+	    return {
+	      selectedCategory: ''
+	    };
+	  },
+
+
+	  props: ['categories'],
+
+	  components: {
+	    CategoryModal: _CategoryModal2.default,
+	    BookmarkModal: _BookmarkModal2.default
+	  },
+
+	  methods: {
+	    addBookmark: function addBookmark() {
+	      this.$broadcast('add-bookmark');
+	    },
+	    addCategory: function addCategory() {
+	      this.$broadcast('add-category');
+	    },
+	    deleteCategory: function deleteCategory(category) {
+	      _store2.default.deleteCategory(category);
+	    },
+	    categorySelected: function categorySelected(category) {
+	      this.selectedCategory = category;
+	      this.$dispatch('category-selected', category);
+	    }
+	  }
+
+	};
+	// </script>
+	// <template>
+	//   <div>
+	//     <div id="categories">
+	//       <div id="cat-header">
+	//         <h2><i class="bookmark icon"></i>Links.app | nlattessi</h2>
+	//       </div>
+	//       <div class="container">
+	//         <h2>Categories
+	//           <span class="clickable right-float">
+	//             <i @click="addCategory" class="add icon"></i>
+	//           </span>
+	//         </h2>
+	//         <div class="ui list">
+	//           <div class="item clickable">
+	//             <div class="content">
+	//               <a href="" class="ui grey empty circular label"></a>
+	//               <span @click="categorySelected('')">All</span>
+	//             </div>
+	//           </div>
+	//           <div v-for="(name, color) in categories" class="item clickable">
+	//             <div class="content">
+	//               <a class="ui {{ color }} empty circular label"></a>
+	//               <span @click="categorySelected(name)"
+	//                 :class="{selected: selectedCategory === name}">
+	//                 {{ name }}
+	//               </span>
+	//               <i v-if="name !== 'Uncategorized'" class="remove icon right-float"
+	//                 @click="deleteCategory(name)">
+	//               </i>
+	//             </div>
+	//           </div>
+	//         </div>
+	//         <button @click="addBookmark"
+	//           class="ui grey inverted basic icon circular button right-float">
+	//           <i class="icon add"></i>
+	//         </button>
+	//       </div>
+	//     </div>
+	//     <category-modal></category-modal>
+	//     <bookmark-modal :categories="categories"></bookmark-modal>
+	//   </div>
+	// </template>
+	//
+	// <script>
+
+/***/ },
+/* 32 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __vue_script__, __vue_template__
+	__vue_script__ = __webpack_require__(33)
+	if (__vue_script__ &&
+	    __vue_script__.__esModule &&
+	    Object.keys(__vue_script__).length > 1) {
+	  console.warn("[vue-loader] app/components/CategoryModal.vue: named exports in *.vue files are ignored.")}
+	__vue_template__ = __webpack_require__(34)
+	module.exports = __vue_script__ || {}
+	if (module.exports.__esModule) module.exports = module.exports.default
+	if (__vue_template__) {
+	(typeof module.exports === "function" ? (module.exports.options || (module.exports.options = {})) : module.exports).template = __vue_template__
+	}
+	if (false) {(function () {  module.hot.accept()
+	  var hotAPI = require("vue-hot-reload-api")
+	  hotAPI.install(require("vue"), false)
+	  if (!hotAPI.compatible) return
+	  var id = "_v-793fc635/CategoryModal.vue"
+	  if (!module.hot.data) {
+	    hotAPI.createRecord(id, module.exports)
+	  } else {
+	    hotAPI.update(id, module.exports, __vue_template__)
+	  }
+	})()}
+
+/***/ },
+/* 33 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _store = __webpack_require__(10);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = {
+	  data: function data() {
+	    return {
+	      catName: '',
+	      catColor: '',
+	      categoryColors: ['red', 'orange', 'yellow', 'olive', 'green', 'teal', 'blue', 'violet', 'purple', 'pink', 'brown', 'grey', 'black']
+	    };
+	  },
+
+
+	  methods: {
+	    addCategory: function addCategory() {
+	      var newCategory = {};
+	      newCategory[this.catName] = this.catColor;
+	      _store2.default.addCategory(newCategory);
+	      $('#cat-modal').modal('hide');
+	    }
+	  },
+
+	  events: {
+
+	    'add-category': function addCategory() {
+	      this.catName = this.catColor = '';
+	      $('#cat-modal').modal('show');
+	    }
+
+	  }
+
+	};
+	// </script>
+	// <template>
+	//   <div id="cat-modal" class="ui small modal">
+	//     <i class="close icon"></i>
+	//     <div class="header">
+	//       Add a new category
+	//     </div>
+	//     <div class="content">
+	//       <form class="ui form">
+	//         <div class="field">
+	//           <label>Category name</label>
+	//           <input v-model="catName" type="text" placeholder="Enter a category name...">
+	//         </div>
+	//         <div class="field">
+	//           <label>Category color</label>
+	//           <select v-model="catColor" class="ui simple dropdown">
+	//             <option value="">Select a color</option>
+	//             <option v-for="color in categoryColors"
+	//               value="{{color}}">
+	//               {{color | capitalize}}
+	//             </option>
+	//           </select>
+	//         </div>
+	//       </form>
+	//     </div>
+	//     <div class="actions">
+	//       <div @click="addCategory" class="ui purple inverted button">Save</div>
+	//     </div>
+	//   </div>
+	// </template>
+	//
+	// <script>
+
+/***/ },
+/* 34 */
+/***/ function(module, exports) {
+
+	module.exports = "\n<div id=\"cat-modal\" class=\"ui small modal\">\n  <i class=\"close icon\"></i>\n  <div class=\"header\">\n    Add a new category\n  </div>\n  <div class=\"content\">\n    <form class=\"ui form\">\n      <div class=\"field\">\n        <label>Category name</label>\n        <input v-model=\"catName\" type=\"text\" placeholder=\"Enter a category name...\">\n      </div>\n      <div class=\"field\">\n        <label>Category color</label>\n        <select v-model=\"catColor\" class=\"ui simple dropdown\">\n          <option value=\"\">Select a color</option>\n          <option v-for=\"color in categoryColors\"\n            value=\"{{color}}\">\n            {{color | capitalize}}\n          </option>\n        </select>\n      </div>\n    </form>\n  </div>\n  <div class=\"actions\">\n    <div @click=\"addCategory\" class=\"ui purple inverted button\">Save</div>\n  </div>\n</div>\n";
+
+/***/ },
+/* 35 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __vue_script__, __vue_template__
+	__vue_script__ = __webpack_require__(36)
+	if (__vue_script__ &&
+	    __vue_script__.__esModule &&
+	    Object.keys(__vue_script__).length > 1) {
+	  console.warn("[vue-loader] app/components/BookmarkModal.vue: named exports in *.vue files are ignored.")}
+	__vue_template__ = __webpack_require__(37)
+	module.exports = __vue_script__ || {}
+	if (module.exports.__esModule) module.exports = module.exports.default
+	if (__vue_template__) {
+	(typeof module.exports === "function" ? (module.exports.options || (module.exports.options = {})) : module.exports).template = __vue_template__
+	}
+	if (false) {(function () {  module.hot.accept()
+	  var hotAPI = require("vue-hot-reload-api")
+	  hotAPI.install(require("vue"), false)
+	  if (!hotAPI.compatible) return
+	  var id = "_v-505ec606/BookmarkModal.vue"
+	  if (!module.hot.data) {
+	    hotAPI.createRecord(id, module.exports)
+	  } else {
+	    hotAPI.update(id, module.exports, __vue_template__)
+	  }
+	})()}
+
+/***/ },
+/* 36 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _store = __webpack_require__(10);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = {
+	  data: function data() {
+	    return {
+	      bookmarkTitle: '',
+	      bookmarkUrl: '',
+	      bookmarkCategory: ''
+	    };
+	  },
+
+
+	  props: ['categories'],
+
+	  methods: {
+	    addBookmark: function addBookmark() {
+	      var newBookmark = {
+	        title: this.bookmarkTitle,
+	        url: this.bookmarkUrl,
+	        category: this.bookmarkCategory
+	      };
+	      _store2.default.addBookmark(newBookmark);
+	      $('#bookmark-modal').modal('hide');
+	    }
+	  },
+
+	  events: {
+
+	    'add-bookmark': function addBookmark() {
+	      this.bookmarkTitle = this.bookmarkUrl = this.bookmarkCategory = '';
+	      $('#bookmark-modal').modal('show');
+	    }
+
+	  }
+
+	};
+	// </script>
+	// <template>
+	//   <div id="bookmark-modal" class="ui small modal">
+	//     <i class="close icon"></i>
+	//     <div class="header">
+	//       Add a new bookmark
+	//     </div>
+	//     <div class="content">
+	//       <form class="ui form">
+	//         <div class="field">
+	//           <label>Bookmark Title</label>
+	//           <input v-model="bookmarkTitle" type="text" placeholder="Enter a title for your bookmark...">
+	//         </div>
+	//         <div class="field">
+	//           <label>Bookmark URL</label>
+	//           <input v-model="bookmarkUrl" type="text" placeholder="Enter the URL for your bookmark...">
+	//         </div>
+	//         <div class="field">
+	//           <label>Bookmark category</label>
+	//           <select v-model="bookmarkCategory" class="ui simple dropdown">
+	//             <option value="">Select a category</option>
+	//             <template v-for="(name, color) in categories">
+	//               <option value="{{ name }}">{{ name }}</option>
+	//             </template>
+	//           </select>
+	//         </div>
+	//       </form>
+	//     </div>
+	//     <div class="actions">
+	//       <div @click="addBookmark" class="ui purple inverted button">Add</div>
+	//     </div>
+	//   </div>
+	// </template>
+	//
+	// <script>
+
+/***/ },
+/* 37 */
+/***/ function(module, exports) {
+
+	module.exports = "\n<div id=\"bookmark-modal\" class=\"ui small modal\">\n  <i class=\"close icon\"></i>\n  <div class=\"header\">\n    Add a new bookmark\n  </div>\n  <div class=\"content\">\n    <form class=\"ui form\">\n      <div class=\"field\">\n        <label>Bookmark Title</label>\n        <input v-model=\"bookmarkTitle\" type=\"text\" placeholder=\"Enter a title for your bookmark...\">\n      </div>\n      <div class=\"field\">\n        <label>Bookmark URL</label>\n        <input v-model=\"bookmarkUrl\" type=\"text\" placeholder=\"Enter the URL for your bookmark...\">\n      </div>\n      <div class=\"field\">\n        <label>Bookmark category</label>\n        <select v-model=\"bookmarkCategory\" class=\"ui simple dropdown\">\n          <option value=\"\">Select a category</option>\n          <template v-for=\"(name, color) in categories\">\n            <option value=\"{{ name }}\">{{ name }}</option>\n          </template>\n        </select>\n      </div>\n    </form>\n  </div>\n  <div class=\"actions\">\n    <div @click=\"addBookmark\" class=\"ui purple inverted button\">Add</div>\n  </div>\n</div>\n";
+
+/***/ },
+/* 38 */
+/***/ function(module, exports) {
+
+	module.exports = "\n<div>\n  <div id=\"categories\">\n    <div id=\"cat-header\">\n      <h2><i class=\"bookmark icon\"></i>Links.app | nlattessi</h2>\n    </div>\n    <div class=\"container\">\n      <h2>Categories\n        <span class=\"clickable right-float\">\n          <i @click=\"addCategory\" class=\"add icon\"></i>\n        </span>\n      </h2>\n      <div class=\"ui list\">\n        <div class=\"item clickable\">\n          <div class=\"content\">\n            <a href=\"\" class=\"ui grey empty circular label\"></a>\n            <span @click=\"categorySelected('')\">All</span>\n          </div>\n        </div>\n        <div v-for=\"(name, color) in categories\" class=\"item clickable\">\n          <div class=\"content\">\n            <a class=\"ui {{ color }} empty circular label\"></a>\n            <span @click=\"categorySelected(name)\"\n              :class=\"{selected: selectedCategory === name}\">\n              {{ name }}\n            </span>\n            <i v-if=\"name !== 'Uncategorized'\" class=\"remove icon right-float\"\n              @click=\"deleteCategory(name)\">\n            </i>\n          </div>\n        </div>\n      </div>\n      <button @click=\"addBookmark\"\n        class=\"ui grey inverted basic icon circular button right-float\">\n        <i class=\"icon add\"></i>\n      </button>\n    </div>\n  </div>\n  <category-modal></category-modal>\n  <bookmark-modal :categories=\"categories\"></bookmark-modal>\n</div>\n";
+
+/***/ },
+/* 39 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __vue_script__, __vue_template__
+	__vue_script__ = __webpack_require__(40)
+	if (__vue_script__ &&
+	    __vue_script__.__esModule &&
+	    Object.keys(__vue_script__).length > 1) {
+	  console.warn("[vue-loader] app/components/BookmarkList.vue: named exports in *.vue files are ignored.")}
+	__vue_template__ = __webpack_require__(45)
+	module.exports = __vue_script__ || {}
+	if (module.exports.__esModule) module.exports = module.exports.default
+	if (__vue_template__) {
+	(typeof module.exports === "function" ? (module.exports.options || (module.exports.options = {})) : module.exports).template = __vue_template__
+	}
+	if (false) {(function () {  module.hot.accept()
+	  var hotAPI = require("vue-hot-reload-api")
+	  hotAPI.install(require("vue"), false)
+	  if (!hotAPI.compatible) return
+	  var id = "_v-19202efe/BookmarkList.vue"
+	  if (!module.hot.data) {
+	    hotAPI.createRecord(id, module.exports)
+	  } else {
+	    hotAPI.update(id, module.exports, __vue_template__)
+	  }
+	})()}
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _Bookmark = __webpack_require__(41);
+
+	var _Bookmark2 = _interopRequireDefault(_Bookmark);
+
+	var _filters = __webpack_require__(44);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	// <template>
+	//   <div id="links-container">
+	//     <div id="toolbar">
+	//       <div class="ui inverted icon fluid input">
+	//         <input v-model="query" type="text" placeholder="Filter your links...">
+	//         <i class="search icon"></i>
+	//       </div>
+	//     </div>
+	//     <div class="ui relaxed divided selection list">
+	//       <bookmark v-for="(id, bookmark) in bookmarks | filterByTitle query"
+	//         :id="id"
+	//         :title="bookmark.title"
+	//         :url="bookmark.url"
+	//         :category="bookmark.category"
+	//         :category-color="categories[bookmark.category]">
+	//       </bookmark>
+	//     </div>
+	//   </div>
+	// </template>
+	//
+	// <script>
+	exports.default = {
+	  data: function data() {
+	    return {
+	      query: ''
+	    };
+	  },
+
+
+	  props: ['bookmarks', 'categories'],
+
+	  components: {
+	    Bookmark: _Bookmark2.default
+	  },
+
+	  filters: {
+	    filterByTitle: _filters.filterByTitle
+	  }
+
+	};
+
+	// </script>
+
+/***/ },
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __vue_script__, __vue_template__
+	__vue_script__ = __webpack_require__(42)
+	if (__vue_script__ &&
+	    __vue_script__.__esModule &&
+	    Object.keys(__vue_script__).length > 1) {
+	  console.warn("[vue-loader] app/components/Bookmark.vue: named exports in *.vue files are ignored.")}
+	__vue_template__ = __webpack_require__(43)
+	module.exports = __vue_script__ || {}
+	if (module.exports.__esModule) module.exports = module.exports.default
+	if (__vue_template__) {
+	(typeof module.exports === "function" ? (module.exports.options || (module.exports.options = {})) : module.exports).template = __vue_template__
+	}
+	if (false) {(function () {  module.hot.accept()
+	  var hotAPI = require("vue-hot-reload-api")
+	  hotAPI.install(require("vue"), false)
+	  if (!hotAPI.compatible) return
+	  var id = "_v-9773a580/Bookmark.vue"
+	  if (!module.hot.data) {
+	    hotAPI.createRecord(id, module.exports)
+	  } else {
+	    hotAPI.update(id, module.exports, __vue_template__)
+	  }
+	})()}
+
+/***/ },
+/* 42 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _store = __webpack_require__(10);
+
+	var _store2 = _interopRequireDefault(_store);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	exports.default = {
+
+	  props: ['id', 'title', 'url', 'category', 'categoryColor'],
+
+	  methods: {
+	    deleteBookmark: function deleteBookmark() {
+	      _store2.default.deleteBookmark(this.id);
+	    },
+	    openLink: function openLink() {
+	      // TODO: open link
+	    }
+	  }
+
+	};
+
+	// </script>
+	// <template>
+	//   <div @click="openLink" class="item">
+	//     <div class="content">
+	//       <i @click.stop="deleteBookmark" class="icon remove right-float"></i>
+	//       <a class="header">{{title}}</a>
+	//       <div class="description">
+	//         {{url}}
+	//         <a class="ui {{categoryColor}} tiny label right-float">{{category}}</a>
+	//       </div>
+	//     </div>
+	//   </div>
+	// </template>
+	//
+	// <script>
+
+/***/ },
+/* 43 */
+/***/ function(module, exports) {
+
+	module.exports = "\n<div @click=\"openLink\" class=\"item\">\n  <div class=\"content\">\n    <i @click.stop=\"deleteBookmark\" class=\"icon remove right-float\"></i>\n    <a class=\"header\">{{title}}</a>\n    <div class=\"description\">\n      {{url}}\n      <a class=\"ui {{categoryColor}} tiny label right-float\">{{category}}</a>\n    </div>\n  </div>\n</div>\n";
+
+/***/ },
+/* 44 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.filterByTitle = filterByTitle;
+	exports.filterByCategory = filterByCategory;
+	function filterByTitle(value, title) {
+	  return filterBookmarks(value, 'title', title);
+	}
+
+	function filterByCategory(value, category) {
+	  if (!category) return value;
+	  return filterBookmarks(value, 'category', category);
+	}
+
+	// TODO: refactor to functional programming
+	function filterBookmarks(bookmarks, filterBy, filterValue) {
+	  var filteredBookmarks = {};
+	  for (var bookmark in bookmarks) {
+	    if (bookmarks[bookmark][filterBy].indexOf(filterValue) > -1) {
+	      filteredBookmarks[bookmark] = bookmarks[bookmark];
+	    }
+	  }
+	  return filteredBookmarks;
+	}
+
+/***/ },
+/* 45 */
+/***/ function(module, exports) {
+
+	module.exports = "\n<div id=\"links-container\">\n  <div id=\"toolbar\">\n    <div class=\"ui inverted icon fluid input\">\n      <input v-model=\"query\" type=\"text\" placeholder=\"Filter your links...\">\n      <i class=\"search icon\"></i>\n    </div>\n  </div>\n  <div class=\"ui relaxed divided selection list\">\n    <bookmark v-for=\"(id, bookmark) in bookmarks | filterByTitle query\"\n      :id=\"id\"\n      :title=\"bookmark.title\"\n      :url=\"bookmark.url\"\n      :category=\"bookmark.category\"\n      :category-color=\"categories[bookmark.category]\">\n    </bookmark>\n  </div>\n</div>\n";
+
+/***/ },
+/* 46 */
+/***/ function(module, exports) {
+
+	module.exports = "\n<div id=\"app\">\n  <sidebar\n    :categories=\"categories\"\n    v-on:category-selected=\"setSelectedCategory\">\n  </sidebar>\n  <bookmark-list\n    :bookmarks=\"bookmarks | filterByCategory selectedCategory\"\n    :categories=\"categories\">\n  </bookmark-list>\n</div>\n";
 
 /***/ }
 /******/ ]);
