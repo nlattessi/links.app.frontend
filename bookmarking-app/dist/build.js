@@ -65,6 +65,12 @@
 	new _vue2.default({
 	  el: 'body',
 	  components: { App: _App2.default }
+	  // http: {
+	  // root: '/root',
+	  // headers: {
+	  //   Authorization: 'Basic YXBpOnBhc3N3b3Jk'
+	  // }
+	  // }
 	});
 
 /***/ },
@@ -10152,7 +10158,6 @@
 /***/ function(module, exports) {
 
 	// shim for using process in browser
-
 	var process = module.exports = {};
 
 	// cached from whatever global is present so that test runners that stub it
@@ -10164,21 +10169,63 @@
 	var cachedClearTimeout;
 
 	(function () {
-	  try {
-	    cachedSetTimeout = setTimeout;
-	  } catch (e) {
-	    cachedSetTimeout = function () {
-	      throw new Error('setTimeout is not defined');
+	    try {
+	        cachedSetTimeout = setTimeout;
+	    } catch (e) {
+	        cachedSetTimeout = function () {
+	            throw new Error('setTimeout is not defined');
+	        }
 	    }
-	  }
-	  try {
-	    cachedClearTimeout = clearTimeout;
-	  } catch (e) {
-	    cachedClearTimeout = function () {
-	      throw new Error('clearTimeout is not defined');
+	    try {
+	        cachedClearTimeout = clearTimeout;
+	    } catch (e) {
+	        cachedClearTimeout = function () {
+	            throw new Error('clearTimeout is not defined');
+	        }
 	    }
-	  }
 	} ())
+	function runTimeout(fun) {
+	    if (cachedSetTimeout === setTimeout) {
+	        //normal enviroments in sane situations
+	        return setTimeout(fun, 0);
+	    }
+	    try {
+	        // when when somebody has screwed with setTimeout but no I.E. maddness
+	        return cachedSetTimeout(fun, 0);
+	    } catch(e){
+	        try {
+	            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+	            return cachedSetTimeout.call(null, fun, 0);
+	        } catch(e){
+	            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+	            return cachedSetTimeout.call(this, fun, 0);
+	        }
+	    }
+
+
+	}
+	function runClearTimeout(marker) {
+	    if (cachedClearTimeout === clearTimeout) {
+	        //normal enviroments in sane situations
+	        return clearTimeout(marker);
+	    }
+	    try {
+	        // when when somebody has screwed with setTimeout but no I.E. maddness
+	        return cachedClearTimeout(marker);
+	    } catch (e){
+	        try {
+	            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+	            return cachedClearTimeout.call(null, marker);
+	        } catch (e){
+	            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+	            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+	            return cachedClearTimeout.call(this, marker);
+	        }
+	    }
+
+
+
+	}
 	var queue = [];
 	var draining = false;
 	var currentQueue;
@@ -10203,7 +10250,7 @@
 	    if (draining) {
 	        return;
 	    }
-	    var timeout = cachedSetTimeout.call(null, cleanUpNextTick);
+	    var timeout = runTimeout(cleanUpNextTick);
 	    draining = true;
 
 	    var len = queue.length;
@@ -10220,7 +10267,7 @@
 	    }
 	    currentQueue = null;
 	    draining = false;
-	    cachedClearTimeout.call(null, timeout);
+	    runClearTimeout(timeout);
 	}
 
 	process.nextTick = function (fun) {
@@ -10232,7 +10279,7 @@
 	    }
 	    queue.push(new Item(fun, args));
 	    if (queue.length === 1 && !draining) {
-	        cachedSetTimeout.call(null, drainQueue, 0);
+	        runTimeout(drainQueue);
 	    }
 	};
 
@@ -11599,7 +11646,7 @@
 	    __vue_script__.__esModule &&
 	    Object.keys(__vue_script__).length > 1) {
 	  console.warn("[vue-loader] app/App.vue: named exports in *.vue files are ignored.")}
-	__vue_template__ = __webpack_require__(46)
+	__vue_template__ = __webpack_require__(43)
 	module.exports = __vue_script__ || {}
 	if (module.exports.__esModule) module.exports = module.exports.default
 	if (__vue_template__) {
@@ -11609,7 +11656,7 @@
 	  var hotAPI = require("vue-hot-reload-api")
 	  hotAPI.install(require("vue"), false)
 	  if (!hotAPI.compatible) return
-	  var id = "_v-243a0812/App.vue"
+	  var id = "_v-0203ee6e/App.vue"
 	  if (!module.hot.data) {
 	    hotAPI.createRecord(id, module.exports)
 	  } else {
@@ -11627,104 +11674,151 @@
 	  value: true
 	});
 
-	var _defineProperty2 = __webpack_require__(6);
+	var _store = __webpack_require__(6);
 
-	var _defineProperty3 = _interopRequireDefault(_defineProperty2);
+	var _store2 = _interopRequireDefault(_store);
 
-	var _components$data$filt; // <template>
+	var _Sidebar = __webpack_require__(27);
+
+	var _Sidebar2 = _interopRequireDefault(_Sidebar);
+
+	var _BookmarkList = __webpack_require__(36);
+
+	var _BookmarkList2 = _interopRequireDefault(_BookmarkList);
+
+	var _filters = __webpack_require__(41);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	// <template>
 	//   <div id="app">
+	//     <!-- <sidebar
+	//       :categories="categories"
+	//       v-on:category-selected="setSelectedCategory">
+	//     </sidebar> -->
+	//     <!-- <bookmark-list
+	//       :bookmarks="bookmarks | filterByCategory selectedCategory"
+	//       :categories="categories">
+	//     </bookmark-list> -->
 	//     <sidebar
 	//       :categories="categories"
 	//       v-on:category-selected="setSelectedCategory">
 	//     </sidebar>
 	//     <bookmark-list
-	//       :bookmarks="bookmarks | filterByCategory selectedCategory"
-	//       :categories="categories">
+	//       :links="links">
 	//     </bookmark-list>
 	//   </div>
 	// </template>
 	//
 	// <script>
-
-
-	var _store = __webpack_require__(10);
-
-	var _store2 = _interopRequireDefault(_store);
-
-	var _Sidebar = __webpack_require__(30);
-
-	var _Sidebar2 = _interopRequireDefault(_Sidebar);
-
-	var _BookmarkList = __webpack_require__(39);
-
-	var _BookmarkList2 = _interopRequireDefault(_BookmarkList);
-
-	var _filters = __webpack_require__(44);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	exports.default = (_components$data$filt = {
+	exports.default = {
 
 	  components: {
 	    Sidebar: _Sidebar2.default,
 	    BookmarkList: _BookmarkList2.default
 	  },
 
+	  // data() {
+	  //   return {
+	  //     categories: {},
+	  //     bookmarks: {},
+	  //     selectedCategory: ''
+	  //   }
+	  // },
+
 	  data: function data() {
 	    return {
-	      categories: {},
-	      bookmarks: {},
+	      categories: [],
+	      links: [],
 	      selectedCategory: ''
 	    };
 	  },
 
 
-	  filters: {
-	    filterByCategory: _filters.filterByCategory
+	  // filters: {
+	  //   filterByCategory
+	  // },
+
+	  created: function created() {
+	    // store.on('data-updated', this.updateListings)
+	    // store.setDefaultData()
+	    // this.fetchTaskList()
+	    _store2.default.on('data-updated', this.update);
+	    this.fetchCategories();
+	  },
+	  destroyed: function destroyed() {
+	    _store2.default.removeListener('data-updated', this.update);
+	  },
+
+
+	  methods: {
+	    fetchCategories: function fetchCategories() {
+	      var _this = this;
+
+	      this.$http.get('http://links.app/categories?include=links').then(function (response) {
+	        _this.categories = response.json().data;
+	        _this.setSelectedCategory('');
+	      }, function (response) {
+	        console.log('error callback');
+	        console.log(response);
+	      });
+	    },
+	    update: function update() {},
+
+
+	    // fetchTaskList () {
+	    //   const resource = this.$resource('api/tasks{/id}');
+	    //   // resource.get((tasks) => { // api/tasks
+	    //   //   console.log(tasks)
+	    //   // })
+	    //   resource.get().then((response) => {
+	    //     console.log(response)
+	    //   })
+	    //   // resource.get({ id: 5}, (task) => { // api/tasks/5
+	    //   //   console.log(task)
+	    //   // })
+	    //   // resource.update({ id: 5}, { body: 'Updated body'}, (task) => { // /api/tasks/5
+	    //   //   console.log(task)
+	    //   // })
+	    //   // this.$http.get('api/taks', (tasks) => {
+	    //   //   console.log(tasks)
+	    //   // })
+	    // },
+
+	    // updateListings (categories, bookmarks) {
+	    //   this.categories = categories;
+	    //   this.bookmarks = bookmarks
+	    // },
+
+	    // setSelectedCategory (category) {
+	    //   this.selectedCategory = category;
+	    // }
+
+	    setSelectedCategory: function setSelectedCategory(category) {
+	      var _this2 = this;
+
+	      this.selectedCategory = category;
+
+	      this.links = category === '' ? this.getLinks(this.categories) : this.getLinks(this.categories.filter(function (c) {
+	        return c.name === _this2.selectedCategory;
+	      }));
+	      // : this.categories
+	      //   .find(category => category.name === this.selectedCategory)
+	      //   .links.data
+
+	      console.log(this.links);
+	    },
+	    getLinks: function getLinks(categories) {
+	      console.log(categories);
+	      return categories.map(function (category) {
+	        return category.links.data;
+	      }).reduce(function (acc, link) {
+	        return acc.concat(link);
+	      }, []);
+	    }
 	  }
 
-	}, (0, _defineProperty3.default)(_components$data$filt, 'data', function data() {
-	  return {
-	    list: []
-	  };
-	}), (0, _defineProperty3.default)(_components$data$filt, 'created', function created() {
-	  _store2.default.on('data-updated', this.updateListings);
-	  _store2.default.setDefaultData();
-
-	  this.fetchTaskList();
-	}), (0, _defineProperty3.default)(_components$data$filt, 'methods', {
-	  fetchTaskList: function fetchTaskList() {
-
-	    var resource = this.$resource('api/tasks{/id}');
-
-	    // resource.get((tasks) => { // api/tasks
-	    //   console.log(tasks)
-	    // })
-
-	    resource.get().then(function (response) {
-	      console.log(response);
-	    });
-
-	    // resource.get({ id: 5}, (task) => { // api/tasks/5
-	    //   console.log(task)
-	    // })
-
-	    // resource.update({ id: 5}, { body: 'Updated body'}, (task) => { // /api/tasks/5
-	    //   console.log(task)
-	    // })
-
-	    // this.$http.get('api/taks', (tasks) => {
-	    //   console.log(tasks)
-	    // })
-	  },
-	  updateListings: function updateListings(categories, bookmarks) {
-	    this.categories = categories;
-	    this.bookmarks = bookmarks;
-	  },
-	  setSelectedCategory: function setSelectedCategory(category) {
-	    this.selectedCategory = category;
-	  }
-	}), _components$data$filt);
+	};
 
 	// </script>
 
@@ -11734,81 +11828,19 @@
 
 	"use strict";
 
-	exports.__esModule = true;
-
-	var _defineProperty = __webpack_require__(7);
-
-	var _defineProperty2 = _interopRequireDefault(_defineProperty);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	exports.default = function (obj, key, value) {
-	  if (key in obj) {
-	    (0, _defineProperty2.default)(obj, key, {
-	      value: value,
-	      enumerable: true,
-	      configurable: true,
-	      writable: true
-	    });
-	  } else {
-	    obj[key] = value;
-	  }
-
-	  return obj;
-	};
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = { "default": __webpack_require__(8), __esModule: true };
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var $ = __webpack_require__(9);
-	module.exports = function defineProperty(it, key, desc){
-	  return $.setDesc(it, key, desc);
-	};
-
-/***/ },
-/* 9 */
-/***/ function(module, exports) {
-
-	var $Object = Object;
-	module.exports = {
-	  create:     $Object.create,
-	  getProto:   $Object.getPrototypeOf,
-	  isEnum:     {}.propertyIsEnumerable,
-	  getDesc:    $Object.getOwnPropertyDescriptor,
-	  setDesc:    $Object.defineProperty,
-	  setDescs:   $Object.defineProperties,
-	  getKeys:    $Object.keys,
-	  getNames:   $Object.getOwnPropertyNames,
-	  getSymbols: $Object.getOwnPropertySymbols,
-	  each:       [].forEach
-	};
-
-/***/ },
-/* 10 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 
-	var _keys = __webpack_require__(11);
+	var _keys = __webpack_require__(7);
 
 	var _keys2 = _interopRequireDefault(_keys);
 
-	var _assign = __webpack_require__(23);
+	var _assign = __webpack_require__(19);
 
 	var _assign2 = _interopRequireDefault(_assign);
 
-	var _events = __webpack_require__(29);
+	var _events = __webpack_require__(26);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -11923,43 +11955,43 @@
 	exports.default = store;
 
 /***/ },
-/* 11 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = { "default": __webpack_require__(12), __esModule: true };
+	module.exports = { "default": __webpack_require__(8), __esModule: true };
 
 /***/ },
-/* 12 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(13);
-	module.exports = __webpack_require__(19).Object.keys;
+	__webpack_require__(9);
+	module.exports = __webpack_require__(15).Object.keys;
 
 /***/ },
-/* 13 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 19.1.2.14 Object.keys(O)
-	var toObject = __webpack_require__(14);
+	var toObject = __webpack_require__(10);
 
-	__webpack_require__(16)('keys', function($keys){
+	__webpack_require__(12)('keys', function($keys){
 	  return function keys(it){
 	    return $keys(toObject(it));
 	  };
 	});
 
 /***/ },
-/* 14 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 7.1.13 ToObject(argument)
-	var defined = __webpack_require__(15);
+	var defined = __webpack_require__(11);
 	module.exports = function(it){
 	  return Object(defined(it));
 	};
 
 /***/ },
-/* 15 */
+/* 11 */
 /***/ function(module, exports) {
 
 	// 7.2.1 RequireObjectCoercible(argument)
@@ -11969,13 +12001,13 @@
 	};
 
 /***/ },
-/* 16 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// most Object methods by ES6 should accept primitives
-	var $export = __webpack_require__(17)
-	  , core    = __webpack_require__(19)
-	  , fails   = __webpack_require__(22);
+	var $export = __webpack_require__(13)
+	  , core    = __webpack_require__(15)
+	  , fails   = __webpack_require__(18);
 	module.exports = function(KEY, exec){
 	  var fn  = (core.Object || {})[KEY] || Object[KEY]
 	    , exp = {};
@@ -11984,12 +12016,12 @@
 	};
 
 /***/ },
-/* 17 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var global    = __webpack_require__(18)
-	  , core      = __webpack_require__(19)
-	  , ctx       = __webpack_require__(20)
+	var global    = __webpack_require__(14)
+	  , core      = __webpack_require__(15)
+	  , ctx       = __webpack_require__(16)
 	  , PROTOTYPE = 'prototype';
 
 	var $export = function(type, name, source){
@@ -12035,7 +12067,7 @@
 	module.exports = $export;
 
 /***/ },
-/* 18 */
+/* 14 */
 /***/ function(module, exports) {
 
 	// https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
@@ -12044,18 +12076,18 @@
 	if(typeof __g == 'number')__g = global; // eslint-disable-line no-undef
 
 /***/ },
-/* 19 */
+/* 15 */
 /***/ function(module, exports) {
 
 	var core = module.exports = {version: '1.2.6'};
 	if(typeof __e == 'number')__e = core; // eslint-disable-line no-undef
 
 /***/ },
-/* 20 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// optional / simple context binding
-	var aFunction = __webpack_require__(21);
+	var aFunction = __webpack_require__(17);
 	module.exports = function(fn, that, length){
 	  aFunction(fn);
 	  if(that === undefined)return fn;
@@ -12076,7 +12108,7 @@
 	};
 
 /***/ },
-/* 21 */
+/* 17 */
 /***/ function(module, exports) {
 
 	module.exports = function(it){
@@ -12085,7 +12117,7 @@
 	};
 
 /***/ },
-/* 22 */
+/* 18 */
 /***/ function(module, exports) {
 
 	module.exports = function(exec){
@@ -12097,38 +12129,38 @@
 	};
 
 /***/ },
-/* 23 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = { "default": __webpack_require__(24), __esModule: true };
+	module.exports = { "default": __webpack_require__(20), __esModule: true };
 
 /***/ },
-/* 24 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(25);
-	module.exports = __webpack_require__(19).Object.assign;
+	__webpack_require__(21);
+	module.exports = __webpack_require__(15).Object.assign;
 
 /***/ },
-/* 25 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 19.1.3.1 Object.assign(target, source)
-	var $export = __webpack_require__(17);
+	var $export = __webpack_require__(13);
 
-	$export($export.S + $export.F, 'Object', {assign: __webpack_require__(26)});
+	$export($export.S + $export.F, 'Object', {assign: __webpack_require__(22)});
 
 /***/ },
-/* 26 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// 19.1.2.1 Object.assign(target, source, ...)
-	var $        = __webpack_require__(9)
-	  , toObject = __webpack_require__(14)
-	  , IObject  = __webpack_require__(27);
+	var $        = __webpack_require__(23)
+	  , toObject = __webpack_require__(10)
+	  , IObject  = __webpack_require__(24);
 
 	// should work with symbols and should have deterministic property order (V8 bug)
-	module.exports = __webpack_require__(22)(function(){
+	module.exports = __webpack_require__(18)(function(){
 	  var a = Object.assign
 	    , A = {}
 	    , B = {}
@@ -12157,17 +12189,35 @@
 	} : Object.assign;
 
 /***/ },
-/* 27 */
+/* 23 */
+/***/ function(module, exports) {
+
+	var $Object = Object;
+	module.exports = {
+	  create:     $Object.create,
+	  getProto:   $Object.getPrototypeOf,
+	  isEnum:     {}.propertyIsEnumerable,
+	  getDesc:    $Object.getOwnPropertyDescriptor,
+	  setDesc:    $Object.defineProperty,
+	  setDescs:   $Object.defineProperties,
+	  getKeys:    $Object.keys,
+	  getNames:   $Object.getOwnPropertyNames,
+	  getSymbols: $Object.getOwnPropertySymbols,
+	  each:       [].forEach
+	};
+
+/***/ },
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// fallback for non-array-like ES3 and non-enumerable old V8 strings
-	var cof = __webpack_require__(28);
+	var cof = __webpack_require__(25);
 	module.exports = Object('z').propertyIsEnumerable(0) ? Object : function(it){
 	  return cof(it) == 'String' ? it.split('') : Object(it);
 	};
 
 /***/ },
-/* 28 */
+/* 25 */
 /***/ function(module, exports) {
 
 	var toString = {}.toString;
@@ -12177,7 +12227,7 @@
 	};
 
 /***/ },
-/* 29 */
+/* 26 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -12485,16 +12535,16 @@
 
 
 /***/ },
-/* 30 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(31)
+	__vue_script__ = __webpack_require__(28)
 	if (__vue_script__ &&
 	    __vue_script__.__esModule &&
 	    Object.keys(__vue_script__).length > 1) {
 	  console.warn("[vue-loader] app/components/Sidebar.vue: named exports in *.vue files are ignored.")}
-	__vue_template__ = __webpack_require__(38)
+	__vue_template__ = __webpack_require__(35)
 	module.exports = __vue_script__ || {}
 	if (module.exports.__esModule) module.exports = module.exports.default
 	if (__vue_template__) {
@@ -12504,7 +12554,7 @@
 	  var hotAPI = require("vue-hot-reload-api")
 	  hotAPI.install(require("vue"), false)
 	  if (!hotAPI.compatible) return
-	  var id = "_v-65637942/Sidebar.vue"
+	  var id = "_v-3a3c8f66/Sidebar.vue"
 	  if (!module.hot.data) {
 	    hotAPI.createRecord(id, module.exports)
 	  } else {
@@ -12513,7 +12563,7 @@
 	})()}
 
 /***/ },
-/* 31 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -12522,15 +12572,15 @@
 	  value: true
 	});
 
-	var _store = __webpack_require__(10);
+	var _store = __webpack_require__(6);
 
 	var _store2 = _interopRequireDefault(_store);
 
-	var _CategoryModal = __webpack_require__(32);
+	var _CategoryModal = __webpack_require__(29);
 
 	var _CategoryModal2 = _interopRequireDefault(_CategoryModal);
 
-	var _BookmarkModal = __webpack_require__(35);
+	var _BookmarkModal = __webpack_require__(32);
 
 	var _BookmarkModal2 = _interopRequireDefault(_BookmarkModal);
 
@@ -12546,22 +12596,31 @@
 
 	  props: ['categories'],
 
-	  components: {
-	    CategoryModal: _CategoryModal2.default,
-	    BookmarkModal: _BookmarkModal2.default
-	  },
+	  // components: {
+	  //   CategoryModal,
+	  //   BookmarkModal
+	  // },
 
 	  methods: {
-	    addBookmark: function addBookmark() {
-	      this.$broadcast('add-bookmark');
-	    },
-	    addCategory: function addCategory() {
-	      this.$broadcast('add-category');
-	    },
-	    deleteCategory: function deleteCategory(category) {
-	      _store2.default.deleteCategory(category);
-	    },
-	    categorySelected: function categorySelected(category) {
+
+	    // addBookmark () {
+	    //   this.$broadcast('add-bookmark')
+	    // },
+
+	    // addCategory () {
+	    //   this.$broadcast('add-category')
+	    // },
+
+	    // deleteCategory (category) {
+	    //   store.deleteCategory(category)
+	    // },
+
+	    // categorySelected (category) {
+	    //   this.selectedCategory = category
+	    //   this.$dispatch('category-selected', category)
+	    // }
+
+	    selectCategory: function selectCategory(category) {
 	      this.selectedCategory = category;
 	      this.$dispatch('category-selected', category);
 	    }
@@ -12573,22 +12632,24 @@
 	//   <div>
 	//     <div id="categories">
 	//       <div id="cat-header">
-	//         <h2><i class="bookmark icon"></i>Links.app | nlattessi</h2>
+	//         <h2><i class="bookmark icon"></i>Links.app</h2>
 	//       </div>
 	//       <div class="container">
 	//         <h2>Categories
-	//           <span class="clickable right-float">
+	//           <!-- <span class="clickable right-float">
 	//             <i @click="addCategory" class="add icon"></i>
-	//           </span>
+	//           </span> -->
 	//         </h2>
 	//         <div class="ui list">
 	//           <div class="item clickable">
 	//             <div class="content">
-	//               <a href="" class="ui grey empty circular label"></a>
-	//               <span @click="categorySelected('')">All</span>
+	//               <!-- <a href="" class="ui grey empty circular label"></a> -->
+	//               <!-- <span @click="categorySelected('')">All</span> -->
+	//               <a v-show="selectedCategory === ''" href="" class="ui grey empty circular label"></a>
+	//               <span @click="selectCategory('')">All</span>
 	//             </div>
 	//           </div>
-	//           <div v-for="(name, color) in categories" class="item clickable">
+	//           <!-- <div v-for="(name, color) in categories" class="item clickable">
 	//             <div class="content">
 	//               <a class="ui {{ color }} empty circular label"></a>
 	//               <span @click="categorySelected(name)"
@@ -12599,32 +12660,50 @@
 	//                 @click="deleteCategory(name)">
 	//               </i>
 	//             </div>
+	//           </div> -->
+	//
+	//           <div v-for="category in categories" class="item clickable">
+	//             <div class="content">
+	//               <!-- <a class="ui {{ color }} empty circular label"></a> -->
+	//               <!-- <span @click="categorySelected(name)"
+	//                 :class="{selected: selectedCategory === name}">
+	//                 {{ name }}
+	//               </span> -->
+	//               <a v-show="selectedCategory === category.name" href="" class="ui grey empty circular label"></a>
+	//               <span @click="selectCategory(category.name)">
+	//                 {{category.name}}
+	//               </span>
+	//               <!-- <i v-if="name !== 'Uncategorized'" class="remove icon right-float"
+	//                 @click="deleteCategory(name)">
+	//               </i> -->
+	//             </div>
 	//           </div>
+	//
 	//         </div>
-	//         <button @click="addBookmark"
+	//         <!-- <button @click="addBookmark"
 	//           class="ui grey inverted basic icon circular button right-float">
 	//           <i class="icon add"></i>
-	//         </button>
+	//         </button> -->
 	//       </div>
 	//     </div>
-	//     <category-modal></category-modal>
-	//     <bookmark-modal :categories="categories"></bookmark-modal>
+	//     <!-- <category-modal></category-modal> -->
+	//     <!-- <bookmark-modal :categories="categories"></bookmark-modal> -->
 	//   </div>
 	// </template>
 	//
 	// <script>
 
 /***/ },
-/* 32 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(33)
+	__vue_script__ = __webpack_require__(30)
 	if (__vue_script__ &&
 	    __vue_script__.__esModule &&
 	    Object.keys(__vue_script__).length > 1) {
 	  console.warn("[vue-loader] app/components/CategoryModal.vue: named exports in *.vue files are ignored.")}
-	__vue_template__ = __webpack_require__(34)
+	__vue_template__ = __webpack_require__(31)
 	module.exports = __vue_script__ || {}
 	if (module.exports.__esModule) module.exports = module.exports.default
 	if (__vue_template__) {
@@ -12634,7 +12713,7 @@
 	  var hotAPI = require("vue-hot-reload-api")
 	  hotAPI.install(require("vue"), false)
 	  if (!hotAPI.compatible) return
-	  var id = "_v-793fc635/CategoryModal.vue"
+	  var id = "_v-7e5e9d4e/CategoryModal.vue"
 	  if (!module.hot.data) {
 	    hotAPI.createRecord(id, module.exports)
 	  } else {
@@ -12643,7 +12722,7 @@
 	})()}
 
 /***/ },
-/* 33 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -12652,7 +12731,7 @@
 	  value: true
 	});
 
-	var _store = __webpack_require__(10);
+	var _store = __webpack_require__(6);
 
 	var _store2 = _interopRequireDefault(_store);
 
@@ -12721,22 +12800,22 @@
 	// <script>
 
 /***/ },
-/* 34 */
+/* 31 */
 /***/ function(module, exports) {
 
 	module.exports = "\n<div id=\"cat-modal\" class=\"ui small modal\">\n  <i class=\"close icon\"></i>\n  <div class=\"header\">\n    Add a new category\n  </div>\n  <div class=\"content\">\n    <form class=\"ui form\">\n      <div class=\"field\">\n        <label>Category name</label>\n        <input v-model=\"catName\" type=\"text\" placeholder=\"Enter a category name...\">\n      </div>\n      <div class=\"field\">\n        <label>Category color</label>\n        <select v-model=\"catColor\" class=\"ui simple dropdown\">\n          <option value=\"\">Select a color</option>\n          <option v-for=\"color in categoryColors\"\n            value=\"{{color}}\">\n            {{color | capitalize}}\n          </option>\n        </select>\n      </div>\n    </form>\n  </div>\n  <div class=\"actions\">\n    <div @click=\"addCategory\" class=\"ui purple inverted button\">Save</div>\n  </div>\n</div>\n";
 
 /***/ },
-/* 35 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(36)
+	__vue_script__ = __webpack_require__(33)
 	if (__vue_script__ &&
 	    __vue_script__.__esModule &&
 	    Object.keys(__vue_script__).length > 1) {
 	  console.warn("[vue-loader] app/components/BookmarkModal.vue: named exports in *.vue files are ignored.")}
-	__vue_template__ = __webpack_require__(37)
+	__vue_template__ = __webpack_require__(34)
 	module.exports = __vue_script__ || {}
 	if (module.exports.__esModule) module.exports = module.exports.default
 	if (__vue_template__) {
@@ -12746,7 +12825,7 @@
 	  var hotAPI = require("vue-hot-reload-api")
 	  hotAPI.install(require("vue"), false)
 	  if (!hotAPI.compatible) return
-	  var id = "_v-505ec606/BookmarkModal.vue"
+	  var id = "_v-1f618821/BookmarkModal.vue"
 	  if (!module.hot.data) {
 	    hotAPI.createRecord(id, module.exports)
 	  } else {
@@ -12755,7 +12834,7 @@
 	})()}
 
 /***/ },
-/* 36 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -12764,7 +12843,7 @@
 	  value: true
 	});
 
-	var _store = __webpack_require__(10);
+	var _store = __webpack_require__(6);
 
 	var _store2 = _interopRequireDefault(_store);
 
@@ -12841,28 +12920,28 @@
 	// <script>
 
 /***/ },
-/* 37 */
+/* 34 */
 /***/ function(module, exports) {
 
 	module.exports = "\n<div id=\"bookmark-modal\" class=\"ui small modal\">\n  <i class=\"close icon\"></i>\n  <div class=\"header\">\n    Add a new bookmark\n  </div>\n  <div class=\"content\">\n    <form class=\"ui form\">\n      <div class=\"field\">\n        <label>Bookmark Title</label>\n        <input v-model=\"bookmarkTitle\" type=\"text\" placeholder=\"Enter a title for your bookmark...\">\n      </div>\n      <div class=\"field\">\n        <label>Bookmark URL</label>\n        <input v-model=\"bookmarkUrl\" type=\"text\" placeholder=\"Enter the URL for your bookmark...\">\n      </div>\n      <div class=\"field\">\n        <label>Bookmark category</label>\n        <select v-model=\"bookmarkCategory\" class=\"ui simple dropdown\">\n          <option value=\"\">Select a category</option>\n          <template v-for=\"(name, color) in categories\">\n            <option value=\"{{ name }}\">{{ name }}</option>\n          </template>\n        </select>\n      </div>\n    </form>\n  </div>\n  <div class=\"actions\">\n    <div @click=\"addBookmark\" class=\"ui purple inverted button\">Add</div>\n  </div>\n</div>\n";
 
 /***/ },
-/* 38 */
+/* 35 */
 /***/ function(module, exports) {
 
-	module.exports = "\n<div>\n  <div id=\"categories\">\n    <div id=\"cat-header\">\n      <h2><i class=\"bookmark icon\"></i>Links.app | nlattessi</h2>\n    </div>\n    <div class=\"container\">\n      <h2>Categories\n        <span class=\"clickable right-float\">\n          <i @click=\"addCategory\" class=\"add icon\"></i>\n        </span>\n      </h2>\n      <div class=\"ui list\">\n        <div class=\"item clickable\">\n          <div class=\"content\">\n            <a href=\"\" class=\"ui grey empty circular label\"></a>\n            <span @click=\"categorySelected('')\">All</span>\n          </div>\n        </div>\n        <div v-for=\"(name, color) in categories\" class=\"item clickable\">\n          <div class=\"content\">\n            <a class=\"ui {{ color }} empty circular label\"></a>\n            <span @click=\"categorySelected(name)\"\n              :class=\"{selected: selectedCategory === name}\">\n              {{ name }}\n            </span>\n            <i v-if=\"name !== 'Uncategorized'\" class=\"remove icon right-float\"\n              @click=\"deleteCategory(name)\">\n            </i>\n          </div>\n        </div>\n      </div>\n      <button @click=\"addBookmark\"\n        class=\"ui grey inverted basic icon circular button right-float\">\n        <i class=\"icon add\"></i>\n      </button>\n    </div>\n  </div>\n  <category-modal></category-modal>\n  <bookmark-modal :categories=\"categories\"></bookmark-modal>\n</div>\n";
+	module.exports = "\n<div>\n  <div id=\"categories\">\n    <div id=\"cat-header\">\n      <h2><i class=\"bookmark icon\"></i>Links.app</h2>\n    </div>\n    <div class=\"container\">\n      <h2>Categories\n        <!-- <span class=\"clickable right-float\">\n          <i @click=\"addCategory\" class=\"add icon\"></i>\n        </span> -->\n      </h2>\n      <div class=\"ui list\">\n        <div class=\"item clickable\">\n          <div class=\"content\">\n            <!-- <a href=\"\" class=\"ui grey empty circular label\"></a> -->\n            <!-- <span @click=\"categorySelected('')\">All</span> -->\n            <a v-show=\"selectedCategory === ''\" href=\"\" class=\"ui grey empty circular label\"></a>\n            <span @click=\"selectCategory('')\">All</span>\n          </div>\n        </div>\n        <!-- <div v-for=\"(name, color) in categories\" class=\"item clickable\">\n          <div class=\"content\">\n            <a class=\"ui {{ color }} empty circular label\"></a>\n            <span @click=\"categorySelected(name)\"\n              :class=\"{selected: selectedCategory === name}\">\n              {{ name }}\n            </span>\n            <i v-if=\"name !== 'Uncategorized'\" class=\"remove icon right-float\"\n              @click=\"deleteCategory(name)\">\n            </i>\n          </div>\n        </div> -->\n\n        <div v-for=\"category in categories\" class=\"item clickable\">\n          <div class=\"content\">\n            <!-- <a class=\"ui {{ color }} empty circular label\"></a> -->\n            <!-- <span @click=\"categorySelected(name)\"\n              :class=\"{selected: selectedCategory === name}\">\n              {{ name }}\n            </span> -->\n            <a v-show=\"selectedCategory === category.name\" href=\"\" class=\"ui grey empty circular label\"></a>\n            <span @click=\"selectCategory(category.name)\">\n              {{category.name}}\n            </span>\n            <!-- <i v-if=\"name !== 'Uncategorized'\" class=\"remove icon right-float\"\n              @click=\"deleteCategory(name)\">\n            </i> -->\n          </div>\n        </div>\n\n      </div>\n      <!-- <button @click=\"addBookmark\"\n        class=\"ui grey inverted basic icon circular button right-float\">\n        <i class=\"icon add\"></i>\n      </button> -->\n    </div>\n  </div>\n  <!-- <category-modal></category-modal> -->\n  <!-- <bookmark-modal :categories=\"categories\"></bookmark-modal> -->\n</div>\n";
 
 /***/ },
-/* 39 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(40)
+	__vue_script__ = __webpack_require__(37)
 	if (__vue_script__ &&
 	    __vue_script__.__esModule &&
 	    Object.keys(__vue_script__).length > 1) {
 	  console.warn("[vue-loader] app/components/BookmarkList.vue: named exports in *.vue files are ignored.")}
-	__vue_template__ = __webpack_require__(45)
+	__vue_template__ = __webpack_require__(42)
 	module.exports = __vue_script__ || {}
 	if (module.exports.__esModule) module.exports = module.exports.default
 	if (__vue_template__) {
@@ -12872,7 +12951,7 @@
 	  var hotAPI = require("vue-hot-reload-api")
 	  hotAPI.install(require("vue"), false)
 	  if (!hotAPI.compatible) return
-	  var id = "_v-19202efe/BookmarkList.vue"
+	  var id = "_v-2bf34f5a/BookmarkList.vue"
 	  if (!module.hot.data) {
 	    hotAPI.createRecord(id, module.exports)
 	  } else {
@@ -12881,7 +12960,7 @@
 	})()}
 
 /***/ },
-/* 40 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -12890,11 +12969,11 @@
 	  value: true
 	});
 
-	var _Bookmark = __webpack_require__(41);
+	var _Bookmark = __webpack_require__(38);
 
 	var _Bookmark2 = _interopRequireDefault(_Bookmark);
 
-	var _filters = __webpack_require__(44);
+	var _filters = __webpack_require__(41);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -12906,13 +12985,21 @@
 	//         <i class="search icon"></i>
 	//       </div>
 	//     </div>
-	//     <div class="ui relaxed divided selection list">
+	//     <!-- <div class="ui relaxed divided selection list">
 	//       <bookmark v-for="(id, bookmark) in bookmarks | filterByTitle query"
 	//         :id="id"
 	//         :title="bookmark.title"
 	//         :url="bookmark.url"
 	//         :category="bookmark.category"
 	//         :category-color="categories[bookmark.category]">
+	//       </bookmark>
+	//     </div> -->
+	//     <div class="ui relaxed divided selection list">
+	//       <bookmark v-for="link in links | filterByTitle query"
+	//         :id="link.id"
+	//         :title="link.title"
+	//         :url="link.url"
+	//         :category="link.category">
 	//       </bookmark>
 	//     </div>
 	//   </div>
@@ -12927,7 +13014,8 @@
 	  },
 
 
-	  props: ['bookmarks', 'categories'],
+	  // props: ['bookmarks', 'categories'],
+	  props: ['links'],
 
 	  components: {
 	    Bookmark: _Bookmark2.default
@@ -12942,16 +13030,16 @@
 	// </script>
 
 /***/ },
-/* 41 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __vue_script__, __vue_template__
-	__vue_script__ = __webpack_require__(42)
+	__vue_script__ = __webpack_require__(39)
 	if (__vue_script__ &&
 	    __vue_script__.__esModule &&
 	    Object.keys(__vue_script__).length > 1) {
 	  console.warn("[vue-loader] app/components/Bookmark.vue: named exports in *.vue files are ignored.")}
-	__vue_template__ = __webpack_require__(43)
+	__vue_template__ = __webpack_require__(40)
 	module.exports = __vue_script__ || {}
 	if (module.exports.__esModule) module.exports = module.exports.default
 	if (__vue_template__) {
@@ -12961,7 +13049,7 @@
 	  var hotAPI = require("vue-hot-reload-api")
 	  hotAPI.install(require("vue"), false)
 	  if (!hotAPI.compatible) return
-	  var id = "_v-9773a580/Bookmark.vue"
+	  var id = "_v-7a8fdb9c/Bookmark.vue"
 	  if (!module.hot.data) {
 	    hotAPI.createRecord(id, module.exports)
 	  } else {
@@ -12970,7 +13058,7 @@
 	})()}
 
 /***/ },
-/* 42 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -12979,7 +13067,7 @@
 	  value: true
 	});
 
-	var _store = __webpack_require__(10);
+	var _store = __webpack_require__(6);
 
 	var _store2 = _interopRequireDefault(_store);
 
@@ -12987,28 +13075,34 @@
 
 	exports.default = {
 
-	  props: ['id', 'title', 'url', 'category', 'categoryColor'],
+	  // props: ['id', 'title', 'url', 'category', 'categoryColor'],
+	  props: ['id', 'title', 'url', 'category'],
 
 	  methods: {
-	    deleteBookmark: function deleteBookmark() {
-	      _store2.default.deleteBookmark(this.id);
-	    },
-	    openLink: function openLink() {
-	      // TODO: open link
-	    }
+
+	    // deleteBookmark () {
+	    //   store.deleteBookmark(this.id)
+	    // },
+
+	    // openLink () {
+	    //   // TODO: open link
+	    // }
+
 	  }
 
 	};
 
 	// </script>
 	// <template>
-	//   <div @click="openLink" class="item">
+	//   <!-- <div @click="openLink" class="item"> -->
+	//   <div class="item">
 	//     <div class="content">
-	//       <i @click.stop="deleteBookmark" class="icon remove right-float"></i>
+	//       <!-- <i @click.stop="deleteBookmark" class="icon remove right-float"></i> -->
 	//       <a class="header">{{title}}</a>
 	//       <div class="description">
 	//         {{url}}
-	//         <a class="ui {{categoryColor}} tiny label right-float">{{category}}</a>
+	//         <!-- <a class="ui {{categoryColor}} tiny label right-float">{{category}}</a> -->
+	//         <a class="tiny label right-float">{{category}}</a>
 	//       </div>
 	//     </div>
 	//   </div>
@@ -13017,13 +13111,13 @@
 	// <script>
 
 /***/ },
-/* 43 */
+/* 40 */
 /***/ function(module, exports) {
 
-	module.exports = "\n<div @click=\"openLink\" class=\"item\">\n  <div class=\"content\">\n    <i @click.stop=\"deleteBookmark\" class=\"icon remove right-float\"></i>\n    <a class=\"header\">{{title}}</a>\n    <div class=\"description\">\n      {{url}}\n      <a class=\"ui {{categoryColor}} tiny label right-float\">{{category}}</a>\n    </div>\n  </div>\n</div>\n";
+	module.exports = "\n<!-- <div @click=\"openLink\" class=\"item\"> -->\n<div class=\"item\">\n  <div class=\"content\">\n    <!-- <i @click.stop=\"deleteBookmark\" class=\"icon remove right-float\"></i> -->\n    <a class=\"header\">{{title}}</a>\n    <div class=\"description\">\n      {{url}}\n      <!-- <a class=\"ui {{categoryColor}} tiny label right-float\">{{category}}</a> -->\n      <a class=\"tiny label right-float\">{{category}}</a>\n    </div>\n  </div>\n</div>\n";
 
 /***/ },
-/* 44 */
+/* 41 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -13033,8 +13127,15 @@
 	});
 	exports.filterByTitle = filterByTitle;
 	exports.filterByCategory = filterByCategory;
-	function filterByTitle(value, title) {
-	  return filterBookmarks(value, 'title', title);
+	// export function filterByTitle (value, title) {
+	//   return filterBookmarks(value, 'title', title)
+	// }
+	function filterByTitle(links, title) {
+	  if (!title) return links;
+	  return links.filter(function (l) {
+	    return l.title.includes(title);
+	  });
+	  // this.categories.filter(c => c.name === this.selectedCategory)
 	}
 
 	function filterByCategory(value, category) {
@@ -13054,16 +13155,16 @@
 	}
 
 /***/ },
-/* 45 */
+/* 42 */
 /***/ function(module, exports) {
 
-	module.exports = "\n<div id=\"links-container\">\n  <div id=\"toolbar\">\n    <div class=\"ui inverted icon fluid input\">\n      <input v-model=\"query\" type=\"text\" placeholder=\"Filter your links...\">\n      <i class=\"search icon\"></i>\n    </div>\n  </div>\n  <div class=\"ui relaxed divided selection list\">\n    <bookmark v-for=\"(id, bookmark) in bookmarks | filterByTitle query\"\n      :id=\"id\"\n      :title=\"bookmark.title\"\n      :url=\"bookmark.url\"\n      :category=\"bookmark.category\"\n      :category-color=\"categories[bookmark.category]\">\n    </bookmark>\n  </div>\n</div>\n";
+	module.exports = "\n<div id=\"links-container\">\n  <div id=\"toolbar\">\n    <div class=\"ui inverted icon fluid input\">\n      <input v-model=\"query\" type=\"text\" placeholder=\"Filter your links...\">\n      <i class=\"search icon\"></i>\n    </div>\n  </div>\n  <!-- <div class=\"ui relaxed divided selection list\">\n    <bookmark v-for=\"(id, bookmark) in bookmarks | filterByTitle query\"\n      :id=\"id\"\n      :title=\"bookmark.title\"\n      :url=\"bookmark.url\"\n      :category=\"bookmark.category\"\n      :category-color=\"categories[bookmark.category]\">\n    </bookmark>\n  </div> -->\n  <div class=\"ui relaxed divided selection list\">\n    <bookmark v-for=\"link in links | filterByTitle query\"\n      :id=\"link.id\"\n      :title=\"link.title\"\n      :url=\"link.url\"\n      :category=\"link.category\">\n    </bookmark>\n  </div>\n</div>\n";
 
 /***/ },
-/* 46 */
+/* 43 */
 /***/ function(module, exports) {
 
-	module.exports = "\n<div id=\"app\">\n  <sidebar\n    :categories=\"categories\"\n    v-on:category-selected=\"setSelectedCategory\">\n  </sidebar>\n  <bookmark-list\n    :bookmarks=\"bookmarks | filterByCategory selectedCategory\"\n    :categories=\"categories\">\n  </bookmark-list>\n</div>\n";
+	module.exports = "\n<div id=\"app\">\n  <!-- <sidebar\n    :categories=\"categories\"\n    v-on:category-selected=\"setSelectedCategory\">\n  </sidebar> -->\n  <!-- <bookmark-list\n    :bookmarks=\"bookmarks | filterByCategory selectedCategory\"\n    :categories=\"categories\">\n  </bookmark-list> -->\n  <sidebar\n    :categories=\"categories\"\n    v-on:category-selected=\"setSelectedCategory\">\n  </sidebar>\n  <bookmark-list\n    :links=\"links\">\n  </bookmark-list>\n</div>\n";
 
 /***/ }
 /******/ ]);

@@ -24,7 +24,8 @@ body {
   left: 0;
   width: 300px;
   height: 100%;
-  overflow: hidden;
+  /*overflow: hidden;*/
+  overflow: auto;
   color: #8F9497;
 }
 

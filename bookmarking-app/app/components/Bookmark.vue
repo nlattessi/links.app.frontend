@@ -1,11 +1,13 @@
 <template>
-  <div @click="openLink" class="item">
+  <!-- <div @click="openLink" class="item"> -->
+  <div class="item">
     <div class="content">
-      <i @click.stop="deleteBookmark" class="icon remove right-float"></i>
+      <!-- <i @click.stop="deleteBookmark" class="icon remove right-float"></i> -->
       <a class="header">{{title}}</a>
       <div class="description">
         {{url}}
-        <a class="ui {{categoryColor}} tiny label right-float">{{category}}</a>
+        <!-- <a class="ui {{categoryColor}} tiny label right-float">{{category}}</a> -->
+        <a class="tiny label right-float">{{category}}</a>
       </div>
     </div>
   </div>
@@ -16,17 +18,18 @@
 
   export default {
 
-    props: ['id', 'title', 'url', 'category', 'categoryColor'],
+    // props: ['id', 'title', 'url', 'category', 'categoryColor'],
+    props: ['id', 'title', 'url', 'category'],
 
     methods: {
 
-      deleteBookmark () {
-        store.deleteBookmark(this.id)
-      },
+      // deleteBookmark () {
+      //   store.deleteBookmark(this.id)
+      // },
 
-      openLink () {
-        // TODO: open link
-      }
+      // openLink () {
+      //   // TODO: open link
+      // }
 
     }
 

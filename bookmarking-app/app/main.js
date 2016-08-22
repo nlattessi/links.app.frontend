@@ -7,4 +7,10 @@ Vue.use(VueResource)
 new Vue({
   el: 'body',
   components: { App }
+  // http: {
+    // root: '/root',
+    // headers: {
+    //   Authorization: 'Basic YXBpOnBhc3N3b3Jk'
+    // }
+  // }
 })

@@ -1,5 +1,10 @@
-export function filterByTitle (value, title) {
-  return filterBookmarks(value, 'title', title)
+// export function filterByTitle (value, title) {
+//   return filterBookmarks(value, 'title', title)
+// }
+export function filterByTitle (links, title) {
+  if (! title) return links
+  return links.filter(l => l.title.includes(title))
+  // this.categories.filter(c => c.name === this.selectedCategory)
 }
 
 export function filterByCategory (value, category) {

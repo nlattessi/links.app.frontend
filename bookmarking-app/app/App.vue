@@ -1,12 +1,19 @@
 <template>
   <div id="app">
+    <!-- <sidebar
+      :categories="categories"
+      v-on:category-selected="setSelectedCategory">
+    </sidebar> -->
+    <!-- <bookmark-list
+      :bookmarks="bookmarks | filterByCategory selectedCategory"
+      :categories="categories">
+    </bookmark-list> -->
     <sidebar
       :categories="categories"
       v-on:category-selected="setSelectedCategory">
     </sidebar>
     <bookmark-list
-      :bookmarks="bookmarks | filterByCategory selectedCategory"
-      :categories="categories">
+      :links="links">
     </bookmark-list>
   </div>
 </template>
@@ -24,64 +31,102 @@
       BookmarkList
     },
 
-    data() {
+    // data() {
+    //   return {
+    //     categories: {},
+    //     bookmarks: {},
+    //     selectedCategory: ''
+    //   }
+    // },
+
+    data () {
       return {
-        categories: {},
-        bookmarks: {},
+        categories: [],
+        links: [],
         selectedCategory: ''
       }
     },
 
-    filters: {
-      filterByCategory
-    },
-
-    data () {
-      return {
-        list: []
-      }
-    },
+    // filters: {
+    //   filterByCategory
+    // },
 
     created () {
-      store.on('data-updated', this.updateListings)
-      store.setDefaultData()
+      // store.on('data-updated', this.updateListings)
+      // store.setDefaultData()
+      // this.fetchTaskList()
+      store.on('data-updated', this.update)
+      this.fetchCategories()
+    },
 
-      this.fetchTaskList()
+    destroyed () {
+      store.removeListener('data-updated', this.update)
     },
 
     methods: {
-      fetchTaskList () {
-
-        const resource = this.$resource('api/tasks{/id}');
-
-        // resource.get((tasks) => { // api/tasks
-        //   console.log(tasks)
-        // })
-
-        resource.get().then((response) => {
+      fetchCategories () {
+        this.$http.get('http://links.app/categories?include=links').then((response) => {
+          this.categories = response.json().data
+          this.setSelectedCategory('')
+        }, (response) => {
+          console.log('error callback')
           console.log(response)
         })
-
-        // resource.get({ id: 5}, (task) => { // api/tasks/5
-        //   console.log(task)
-        // })
-
-        // resource.update({ id: 5}, { body: 'Updated body'}, (task) => { // /api/tasks/5
-        //   console.log(task)
-        // })
-
-        // this.$http.get('api/taks', (tasks) => {
-        //   console.log(tasks)
-        // })
       },
 
-      updateListings (categories, bookmarks) {
-        this.categories = categories;
-        this.bookmarks = bookmarks
+      update () {
       },
+
+      // fetchTaskList () {
+      //   const resource = this.$resource('api/tasks{/id}');
+      //   // resource.get((tasks) => { // api/tasks
+      //   //   console.log(tasks)
+      //   // })
+      //   resource.get().then((response) => {
+      //     console.log(response)
+      //   })
+      //   // resource.get({ id: 5}, (task) => { // api/tasks/5
+      //   //   console.log(task)
+      //   // })
+      //   // resource.update({ id: 5}, { body: 'Updated body'}, (task) => { // /api/tasks/5
+      //   //   console.log(task)
+      //   // })
+      //   // this.$http.get('api/taks', (tasks) => {
+      //   //   console.log(tasks)
+      //   // })
+      // },
+
+      // updateListings (categories, bookmarks) {
+      //   this.categories = categories;
+      //   this.bookmarks = bookmarks
+      // },
+
+      // setSelectedCategory (category) {
+      //   this.selectedCategory = category;
+      // }
 
       setSelectedCategory (category) {
-        this.selectedCategory = category;
+        this.selectedCategory = category
+
+        this.links = (category === '')
+          ? this.getLinks(this.categories)
+          : this.getLinks(
+            this.categories.filter(c => c.name === this.selectedCategory)
+          )
+          // : this.categories
+          //   .find(category => category.name === this.selectedCategory)
+          //   .links.data
+        
+        console.log(this.links)
+      },
+
+      getLinks (categories) {
+        console.log(categories)
+        return categories
+          .map(category => category.links.data)
+          .reduce((acc, link) => {
+          return acc.concat(link)
+        }, [])
       }
 
     }
