@@ -1,0 +1,48 @@
+<template>
+  <div class="hello">
+    <h1>{{ msg }}</h1>
+
+    <div class="login_form">
+        <div class="email">
+            <label for="">Email</label>
+            <input type="email">
+        </div>
+
+        <div class="password">
+            <label for="">Password</label>
+            <input type="password">
+        </div>
+        
+        <div class="password_confirmation">
+            <label for="">Password Confirmation</label>
+            <input type="password">
+        </div>
+
+        <div class="submit">
+            <button>Register!</button>
+        </div>
+    </div>
+
+  </div>
+</template>
+
+<script>
+export default {
+  data () {
+    return {
+      // note: changing this line won't causes changes
+      // with hot-reload because the reloaded component
+      // preserves its current state and we are modifying
+      // its initial state.
+      msg: 'Register'
+    }
+  }
+}
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+h1 {
+  color: #42b983;
+}
+</style>
