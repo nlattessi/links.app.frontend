@@ -2,42 +2,87 @@
   <div class="hello">
     <h1>{{ msg }}</h1>
 
-    <div class="login_form">
-        <div class="email">
-            <label for="">Email</label>
-            <input type="email">
-        </div>
+    <span>Email</span>
+    <br>
+    <input type="text" v-model="email" placeholder="user@email.com">
 
-        <div class="password">
-            <label for="">Password</label>
-            <input type="password">
-        </div>
+    <br><br>
 
-        <div class="submit">
-            <button>Login!</button>
-        </div>
-    </div>
+    <span>Password</span>
+    <br>
+    <input type="password" v-model="password">
+
+    <br><br>
+
+    <button v-on:click="login">Login!</button>
+
 
   </div>
 </template>
 
 <script>
+import * as localForage from 'localforage'
+
 export default {
   data () {
     return {
-      // note: changing this line won't causes changes
-      // with hot-reload because the reloaded component
-      // preserves its current state and we are modifying
-      // its initial state.
-      msg: 'Login'
+      msg: 'Login',
+      email: '',
+      password: ''
     }
+  },
+
+  methods: {
+
+    login: function (event) {
+
+      // console.log('localforage is: ', localForage)
+
+      // console.log('login')
+      // console.log(this.email)
+      // console.log(this.password)
+
+      this.$http.post(
+        'https://dry-shore-86449.herokuapp.com/auth/login',
+        {email: this.email, password: this.password},
+        ).then((response) => {
+
+        // console.log('success')
+        // console.log(response.json())
+
+        localForage.setItem('accessToken', response.json().token).then((value) => {
+            // Do other things once the value has been saved.
+            // console.log(value)
+            this.$router.go({
+              path: '/home'
+            })
+        }).catch((err) => {
+            // This code runs if there were any errors
+            console.log(err)
+        })
+
+        // console.log(this.$router)
+        // this.$router.go({
+        //   path: '/home'
+        // })
+
+      }, (response) => {
+
+        console.log('error')
+        console.log(response.json())
+
+      })
+
+    }
+
   }
+
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h1 {
-  color: #42b983;
-}
+  h1 {
+    color: #42b983;
+  }
 </style>

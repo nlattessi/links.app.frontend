@@ -2,26 +2,25 @@
   <div class="hello">
     <h1>{{ msg }}</h1>
 
-    <div class="login_form">
-        <div class="email">
-            <label for="">Email</label>
-            <input type="email">
-        </div>
+    <span>Email</span>
+    <br>
+    <input type="text" v-model="email" placeholder="user@email.com">
 
-        <div class="password">
-            <label for="">Password</label>
-            <input type="password">
-        </div>
-        
-        <div class="password_confirmation">
-            <label for="">Password Confirmation</label>
-            <input type="password">
-        </div>
+    <br><br>
 
-        <div class="submit">
-            <button>Register!</button>
-        </div>
-    </div>
+    <span>Password</span>
+    <br>
+    <input type="password" v-model="password">
+
+    <br><br>
+
+    <span>Confirm password</span>
+    <br>
+    <input type="password" v-model="password_confirmation">
+
+    <br><br>
+
+    <button v-on:click="register">Register!</button>
 
   </div>
 </template>
@@ -30,19 +29,46 @@
 export default {
   data () {
     return {
-      // note: changing this line won't causes changes
-      // with hot-reload because the reloaded component
-      // preserves its current state and we are modifying
-      // its initial state.
-      msg: 'Register'
+      msg: 'Register',
+      email: '',
+      password: '',
+      password_confirmation: ''
     }
+  },
+
+  methods: {
+
+    register: function (event) {
+
+      console.log('register')
+      console.log(this.email)
+      console.log(this.password)
+      console.log(this.password_confirmation)
+
+      this.$http.post(
+        'https://dry-shore-86449.herokuapp.com/auth/register',
+        {email: this.email, password: this.password, password_confirmation: this.password_confirmation},
+        ).then((response) => {
+
+        console.log('success')
+        console.log(response.json())
+
+      }, (response) => {
+
+        console.log('error')
+        console.log(response.json())
+
+      })
+
+    }
+
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h1 {
-  color: #42b983;
-}
+  h1 {
+    color: #42b983;
+  }
 </style>
