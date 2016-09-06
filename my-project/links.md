@@ -13,3 +13,5 @@ https://dashboard.heroku.com/apps/dry-shore-86449
 https://github.com/nlattessi/links.app.frontend/blob/test-bookmarking-app/bookmarking-app/app/components/Sidebar.vue
 
 https://vuejs.org/guide/syntax.html
+
+https://github.com/vuejs/vue-router/issues/479

@@ -53,6 +53,9 @@ export default {
         localForage.setItem('accessToken', response.json().token).then((value) => {
             // Do other things once the value has been saved.
             // console.log(value)
+
+            this.isLogged = true
+
             this.$router.go({
               path: '/home'
             })
