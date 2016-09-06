@@ -1,63 +1,45 @@
-    import Vue from 'vue'
-    import App from './App'
-    import VueRouter from 'vue-router'
-    import VueResource from 'vue-resource'
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+import VueResource from 'vue-resource'
 
+Vue.use(VueResource)
+Vue.use(VueRouter)
+
+import App from './components/App'
 import Login from './components/Login'
 import Register from './components/Register'
+import Home from './components/Home'
+import Links from './components/Links'
 
-    Vue.use(VueResource)
-    Vue.use(VueRouter)
+import auth from './auth'
 
-    /* eslint-disable no-new */
-    // new Vue({
-    //   el: 'body',
-    //   components: { App }
-    // })
+Vue.http.headers.common['Authorization'] = 'Bearer ' + localStorage.getItem('id_token')
 
-    var router = new VueRouter({
-      hashbang: false,
-      history: true,
-      linkActiveClass: 'active-class'
-    })
+auth.checkAuth()
 
-    // Define some components
-    var Foo = Vue.extend({
-      template: '<p>This is foo!</p>'
-    })
+export const router = new VueRouter({
+  hashbang: false,
+  history: true,
+  linkActiveClass: 'active-class'
+})
 
-    var Bar = Vue.extend({
-      template: '<p>This is bar!</p>'
-    })
+router.map({
+  'home': {
+    component: Home
+  },
+  'login': {
+    component: Login
+  },
+  'register': {
+    component: Register
+  },
+  '/links': {
+    component: Links
+  }
+})
 
-    /* Route Map */
-    router.map({
-        // '*': {
-        // component: {
-        //     template: '<h1>Not Found</h1>'
-        // },
-      '/home': {
-        component: {
-            template: '<p>Home</p>'
-        }
-      },
-      'about': {
-        component: Bar
-      },
-      'login': {
-        component: Login
-      },
-      'register': {
-        component: Register
-      }
-    })
+router.redirect({
+  '*': '/login'
+})
 
-    /* Route Redirects */
-    // router.redirect({
-    //   '*': '/home'
-    // })
-
-    /* Bootstrap routes to the main component */
-    router.start({
-      components: { App }
-    }, 'body')
+router.start(App, '#app')

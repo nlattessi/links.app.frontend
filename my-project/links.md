@@ -15,3 +15,5 @@ https://github.com/nlattessi/links.app.frontend/blob/test-bookmarking-app/bookma
 https://vuejs.org/guide/syntax.html
 
 https://github.com/vuejs/vue-router/issues/479
+
+https://github.com/auth0-blog/vue-jwt-authentication/blob/master/package.json

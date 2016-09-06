@@ -1,4 +1,4 @@
-<template>
+<!--<template>
   <div class="hello">
     <h1>{{ msg }}</h1>
 
@@ -18,65 +18,98 @@
 
 
   </div>
+</template>-->
+<template>
+  <div class="col-sm-4 col-sm-offset-4">
+    <h2>Log In</h2>
+    <p>Log in to your account.</p>
+    <div class="alert alert-danger" v-if="error">
+      <p>{{ error }}</p>
+    </div>
+    <div class="form-group">
+      <input type="email" class="form-control" placeholder="Enter your email" v-model="credentials.email">
+    </div>
+    <div class="form-group">
+      <input type="password" class="form-control" placeholder="Enter your password" v-model="credentials.password">
+    </div>
+    <button class="btn btn-primary" @click="submit()">Access</button>
+  </div>
 </template>
 
 <script>
-import * as localForage from 'localforage'
+// import * as localForage from 'localforage'
+import auth from '../auth'
 
 export default {
   data () {
     return {
-      msg: 'Login',
-      email: '',
-      password: ''
+      // msg: 'Login',
+      // email: '',
+      // password: '',
+      credentials: {
+          email: '',
+          password: ''
+        },
+        error: ''
     }
   },
 
   methods: {
 
-    login: function (event) {
+    submit() {
 
-      // console.log('localforage is: ', localForage)
+      const credentials = {
+        email: this.credentials.email,
+        password: this.credentials.password
+      }
 
-      // console.log('login')
-      // console.log(this.email)
-      // console.log(this.password)
-
-      this.$http.post(
-        'https://dry-shore-86449.herokuapp.com/auth/login',
-        {email: this.email, password: this.password},
-        ).then((response) => {
-
-        // console.log('success')
-        // console.log(response.json())
-
-        localForage.setItem('accessToken', response.json().token).then((value) => {
-            // Do other things once the value has been saved.
-            // console.log(value)
-
-            this.isLogged = true
-
-            this.$router.go({
-              path: '/home'
-            })
-        }).catch((err) => {
-            // This code runs if there were any errors
-            console.log(err)
-        })
-
-        // console.log(this.$router)
-        // this.$router.go({
-        //   path: '/home'
-        // })
-
-      }, (response) => {
-
-        console.log('error')
-        console.log(response.json())
-
-      })
+      auth.login(this, credentials, 'links')
 
     }
+
+    // login: function (event) {
+
+    //   // console.log('localforage is: ', localForage)
+
+    //   // console.log('login')
+    //   // console.log(this.email)
+    //   // console.log(this.password)
+
+    //   this.$http.post(
+    //     'https://dry-shore-86449.herokuapp.com/auth/login',
+    //     {email: this.email, password: this.password},
+    //     ).then((response) => {
+
+    //     // console.log('success')
+    //     // console.log(response.json())
+
+    //     localForage.setItem('accessToken', response.json().token).then((value) => {
+    //         // Do other things once the value has been saved.
+    //         // console.log(value)
+
+    //         this.isLogged = true
+
+    //         this.$router.go({
+    //           path: '/home'
+    //         })
+    //     }).catch((err) => {
+    //         // This code runs if there were any errors
+    //         console.log(err)
+    //     })
+
+    //     // console.log(this.$router)
+    //     // this.$router.go({
+    //     //   path: '/home'
+    //     // })
+
+    //   }, (response) => {
+
+    //     console.log('error')
+    //     console.log(response.json())
+
+    //   })
+
+    // }
 
   }
 
