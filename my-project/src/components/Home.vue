@@ -1,78 +1,52 @@
 <template>
-    <div class="hello">
-        <h1>{{ msg }}</h1>
+  <div class="hello">
+    <h1>{{ msg }}</h1>
 
-        <ul id="example-1">
-            <li v-for="link in links">
-                <a href="{{ link.url }}">{{ link.url }}</a>
-            </li>
-        </ul>
-
+    <div class="alert alert-danger" v-if="error">
+      <p>{{ error }}</p>
     </div>
+
+    <ul id="example-1">
+      <li v-for="category in categories">
+        <h1>{{ category.name }}</h1>
+        <ul>
+          <li v-for="link in category.links.data">
+            <a href="{{ link.url }}">{{ link.url }}</a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+  </div>
 </template>
 
 <script>
-import * as localForage from 'localforage'
+import auth from '../auth'
 
 export default {
-  data () {
+  data() {
     return {
-      msg: 'Links',
-      links: []
+      categories: [],
+      error: ''
     }
   },
 
+  ready() {
 
-  ready () {
-
-    localForage.getItem('accessToken').then((value) => {
-        // This code runs once the value has been loaded
-        // from the offline store.
-        console.log(value)
-
-        this.$http.get('https://dry-shore-86449.herokuapp.com/user/links', {headers: {Authorization: `Bearer ${value}`} }).then((response) => {
-
-            console.log('success')
-
-            // this.links = response.json()
-            console.log(response.json().data)
-            this.links = response.json().data
-
-        }).catch((response) => {
-
-            console.log('error')
-
+      this.$http.get('https://dry-shore-86449.herokuapp.com/user/categories?include=links', { headers: auth.getAuthHeader() })
+        .then((response) => {
+          this.categories = response.json().data
+          console.log(response.json())
+        }, (response) => {
+          console.log(response.json())
+          this.error = '' + response.json().error.status + ': ' + response.json().error.message
         })
 
-        // this.$http.get('https://dry-shore-86449.herokuapp.com/user/links', {
-        //   headers: {
-        //       Authorization: `Bearer ${value}`
-        //     }
-        // }, (response) => {
-        //     console.log('success')
-        //     console.log(response.json().data)
-        //     // this.links = response.json().data
-        //     // console.log(this.links)
-        // }, (response) => {
-        //     console.log(error)
-        // })
+  },
 
-
-    }).catch((err) => {
-        // This code runs if there were any errors
-        console.log(err)
-    })
-
-      
-
+  route: {
+    canActivate() {
+      return auth.user.authenticated
+    } 
   }
-
 }
-</script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-    h1 {
-        color: #42b983;
-    }
-</style>
