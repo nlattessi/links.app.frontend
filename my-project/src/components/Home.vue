@@ -1,33 +1,45 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
 
-    <div class="alert alert-danger" v-if="error">
-      <p>{{ error }}</p>
-    </div>
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <h1 class="heading">Links</h1>
 
-    <ul id="example-1">
-      <li v-for="category in categories">
-        <h1>{{ category.name }}</h1>
+      <div class="alert alert-danger" v-if="error">
+        <p>{{ error }}</p>
+      </div>
+
+      <template v-for="category in categories">
+        <h2>{{ category.name }}</h2>
+
+        <modal :show.sync="showModal"></modal>
+        <button id="show-modal" @click="showModal = true">New Post</button>
+
         <ul>
           <li v-for="link in category.links.data">
-            <a href="{{ link.url }}">{{ link.url }}</a>
+            <a href="{{ link.url }}">{{ link.title ? link.title : link.url }}</a>
           </li>
         </ul>
-      </li>
-    </ul>
+      </template>
 
+    </div>
   </div>
 </template>
 
 <script>
 import auth from '../auth'
 
+import Modal from './Modal'
+
 export default {
+  components: {
+    Modal
+  },
+
   data() {
     return {
       categories: [],
-      error: ''
+      error: '',
+      showModal: false
     }
   },
 
@@ -50,3 +62,10 @@ export default {
     } 
   }
 }
+</script>
+
+<style>
+  .heading {
+    border-bottom: .05rem solid #e5e5e5;
+  }
+</style>

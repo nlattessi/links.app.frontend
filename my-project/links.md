@@ -17,3 +17,5 @@ https://vuejs.org/guide/syntax.html
 https://github.com/vuejs/vue-router/issues/479
 
 https://github.com/auth0-blog/vue-jwt-authentication/blob/master/package.json
+
+https://adamwathan.me/2016/01/04/composing-reusable-modal-dialogs-with-vuejs/

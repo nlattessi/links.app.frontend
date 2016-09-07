@@ -6,8 +6,6 @@ import App from './components/App'
 import Login from './components/Login'
 import Register from './components/Register'
 import Home from './components/Home'
-import Links from './components/Links'
-import Categories from './components/Categories'
 
 import auth from './auth'
 
@@ -21,8 +19,6 @@ Vue.http.headers.common['Authorization'] = 'Bearer ' + localStorage.getItem('id_
 auth.checkAuth()
 
 export const router = new VueRouter({
-  // hashbang: false,
-  // history: true,
   linkActiveClass: 'active'
 })
 
@@ -41,12 +37,6 @@ router.map({
   '/register': {
     component: Register
   },
-  // '/links': {
-  //   component: Links
-  // },
-  // '/categories': {
-  //   component: Categories
-  // }
 })
 
 router.redirect({

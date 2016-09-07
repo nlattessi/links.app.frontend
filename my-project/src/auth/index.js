@@ -1,5 +1,5 @@
 import {router} from '../main'
-// import * as localForage from 'localforage'
+// import * as localForage from 'localforage'<
 
 const API_URL = 'https://dry-shore-86449.herokuapp.com/'
 const LOGIN_URL = API_URL + 'auth/login'
@@ -34,16 +34,19 @@ export default {
   },
 
   logout() {
+
     localStorage.removeItem('id_token')
     this.user.authenticated = false
   },
 
   checkAuth() {
+
     const jwt = localStorage.getItem('id_token')
     this.user.authenticated = (jwt) ? true : false;
   },
 
   getAuthHeader() {
+
     return {
       'Authorization': 'Bearer ' + localStorage.getItem('id_token')
     }
