@@ -18,7 +18,7 @@ export default {
       this.user.authenticated = true
       if (redirect) router.go(redirect)
     }, (response) => {
-      context.error = response.error
+      context.error = response.json().error
     })
   },
 
@@ -28,8 +28,8 @@ export default {
       localStorage.setItem('id_token', response.json().token)
       this.user.authenticated = true
       if (redirect) router.go(redirect)
-    }).error((err) => {
-      context.error = response.error
+    }, (response) => {
+      context.error = response.json().error
     })
   },
 
