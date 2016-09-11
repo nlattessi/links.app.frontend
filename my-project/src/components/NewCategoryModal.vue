@@ -46,20 +46,32 @@
           name: this.name
         }
 
-        console.log('broadcasted addedCategory')
-        this.$dispatch('addedCategory', data)
-        this.close()
+        // this.$http.post('https://dry-shore-86449.herokuapp.com/user/categories', data, { headers: auth.getAuthHeader() })
+        this.$http.post('http://links.app/user/categories', data, { headers: auth.getAuthHeader() })
+          .then((response) => {
+            console.log(response)
+            console.log('broadcasted addedCategory')
+            this.$dispatch('addedCategory')
+            this.close()
+          }, (response) => {
+            console.log(response.json())
 
-        // this.$http.post('https://dry-shore-86449.herokuapp.com/user/categories', data, auth.getAuthHeader()).then((response) => {
-        //   console.log(response)
-        //   this.close()
+            if (response.body.error.status === 401) {
 
-        //   this.$broadcast('addedCategory', response)
-        //   console.log('broadcasted addedCategory')
-        // }, (response) => {
-        //   console.log(response)
-        //   this.close()
-        // })
+              console.log("holis")
+
+              auth.refreshToken(this)
+                .then((response) => {
+                  this.addCategory()
+                }, (response) => {
+                  auth.logout()
+                  this.$router.go('/')
+                })
+
+            }
+
+            this.close()
+        })
       }
     }
   }

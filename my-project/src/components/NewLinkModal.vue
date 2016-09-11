@@ -5,6 +5,8 @@
     </div>
 
     <div class="modal-body">
+      <label class="form-label">Title<input v-model="title" class="form-control"></label>
+      <label class="form-label">Url<input v-model="url" class="form-control"></label>
       <label class="form-label">Name<input v-model="name" class="form-control"></label>
     </div>
 
@@ -30,14 +32,16 @@
 
     data () {
       return {
-        name: ''
+        title: '',
+        url: ''
       }
     },
     
     methods: {
       close() {
         this.show = false
-        this.name = ''
+        this.title = ''
+        this.url = ''
       },
 
       addCategory() {

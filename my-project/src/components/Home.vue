@@ -47,13 +47,14 @@
 
     methods: {
       getCategories() {
-        console.log('getCategories')
+        // console.log('getCategories')
         // this.$http.get('https://dry-shore-86449.herokuapp.com/user/categories?include=links', { headers: auth.getAuthHeader() })
-        //   .then((response) => {
-        //     this.categories = response.json().data
-        //   }, (response) => {
-        //     this.error = '' + response.json().error.status + ': ' + response.json().error.message
-        //   })
+        this.$http.get('http://links.app/user/categories?include=links')
+          .then((response) => {
+            this.categories = response.body.data
+          }, (response) => {
+            this.error = '' + response.body.error.status + ': ' + response.body.error.message
+          })
       }
     },
 
