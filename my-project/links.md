@@ -19,3 +19,13 @@ https://github.com/vuejs/vue-router/issues/479
 https://github.com/auth0-blog/vue-jwt-authentication/blob/master/package.json
 
 https://adamwathan.me/2016/01/04/composing-reusable-modal-dialogs-with-vuejs/
+
+https://coligo.io/dynamic-components-in-vuejs/
+
+https://jsfiddle.net/coligo/8mdso9fj/?utm_source=website&utm_medium=embed&utm_campaign=8mdso9fj
+
+https://flyingearl.co.uk/blog/navigation-and-authentication
+
+https://flyingearl.co.uk/blog/todo-routes-and-resources?tag=Vue-Todo+Series
+
+https://jsbin.com/qigupo/3/edit?html,css,js,output

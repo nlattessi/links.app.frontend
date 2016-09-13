@@ -7,7 +7,7 @@
         <p>{{ error }}</p>
       </div>
 
-      <template v-for="category in categories">
+      <!--<template v-for="category in categories">
         <h2>{{ category.name }}</h2>
 
         <ul>
@@ -15,13 +15,13 @@
             <a href="{{ link.url }}">{{ link.title ? link.title : link.url }}</a>
           </li>
         </ul>
-      </template>
+      </template>-->
 
     </div>
   </div>
 
-  <new-category-modal :show.sync="showNewCategoryModal"></new-category-modal>
-  <new-link-modal :show.sync="showNewLinkModal"></new-category-modal>
+  <!--<new-category-modal :show.sync="showNewCategoryModal"></new-category-modal>-->
+  <!--<new-link-modal :show.sync="showNewLinkModal"></new-category-modal>-->
 </template>
 
 <script>

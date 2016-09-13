@@ -1,48 +1,34 @@
 <template>
+  <top-nav :user.sync="user"></top-nav>
   <div class="container">
-    <div class="header clearfix">
-      <nav>
-        <ul class="nav nav-pills pull-xs-right">
-          <li class="nav-item" v-if="!user.authenticated">
-            <a class="nav-link" v-link="'/login'">Login</a>
-          </li>
-          <li class="nav-item" v-if="!user.authenticated">
-            <a class="nav-link" v-link="'/register'">Register</a>
-          </li>
-          <li class="nav-item" v-if="user.authenticated">
-            <a class="nav-link" v-link="'/home'">Home</a>
-          </li>
-          <li class="nav-item" v-if="user.authenticated">
-            <button type="button" class="btn btn-outline-primary" @click="showNewCategoryModal = true">Add Category</button>
-          </li>
-          <li class="nav-item" v-if="user.authenticated">
-            <button type="button" class="btn btn-outline-primary" @click="showNewLinkModal = true">Add Link</button>
-          </li>
-          <li class="nav-item" v-if="user.authenticated">
-            <a class="nav-link" href="#" @click="logout()">Logout</a>
-          </li>
-
-          <!--<li class="nav-item" v-if="user.authenticated">
-            <a class="nav-link" v-link="'/home'" @click="refreshToken()">Refresh Token</a>
-          </li>-->
-
-
-        </ul>
-      </nav>
-      <h3 class="text-muted">Links.app</h3>
-    </div>
-    <router-view :show-new-category-modal.sync="showNewCategoryModal" :show-new-link-modal.sync="showNewLinkModal">
-    </router-view>
+    <router-view transition="fade" transition-mode="out-in" :show-new-category-modal.sync="showNewCategoryModal" :show-new-link-modal.sync="showNewLinkModal"></router-view>
+    <!--<component :is="currentView" transition="fade" transition-mode="out-in"></component>-->
   </div>
 </template>
 
+<!--<template>
+  <div>
+    <top-nav></top-nav>
+    <div class="container-fluid">
+      <router-view></router-view>
+    </div>
+  </div>
+</template>-->
+
 <script>
   import auth from '../auth'
+  import TopNav from './TopNav.vue'
+
+  // import Home from './Home.vue'
+  // import Create from './Create.vue'
 
   export default {
 
+    components: { TopNav },
+
     data () {
       return {
+        // currentView: 'home',
         user: auth.user,
         showNewCategoryModal: false,
         showNewLinkModal: false
@@ -52,9 +38,21 @@
 
       logout() {
         auth.logout()
-        this.$router.go('/')
+        // this.$router.go('/')
+        console.log('logout')
+        if (this.$route.auth) this.$route.router.go('/login')
       },
 
+    },
+
+    // ready () {
+    //   this.$on('userLoggedOut', () => {
+    //     this.logout();
+    //   })
+    // }
+
+    events: {
+      'userLoggedOut': 'logout'
     }
 
     // events: {
@@ -66,3 +64,14 @@
     // }
   }
 </script>
+
+<style>
+  .fade-transition {
+    transition: opacity 0.2s ease;
+  }
+  
+  .fade-enter,
+  .fade-leave {
+    opacity: 0;
+  }
+</style>

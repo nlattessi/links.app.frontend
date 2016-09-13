@@ -4,8 +4,10 @@ import VueResource from 'vue-resource'
 
 import App from './components/App'
 import Login from './components/Login'
+import Logout from './components/Logout.vue'
 import Register from './components/Register'
 import Home from './components/Home'
+import Create from './components/Create.vue'
 
 import auth from './auth'
 
@@ -70,9 +72,15 @@ router.map({
   '/login': {
     component: Login
   },
+  '/logout': {
+    component: Logout
+  },
   '/register': {
     component: Register
   },
+  '/create/link': {
+    component: Create
+  }
 })
 
 router.redirect({
@@ -80,3 +88,8 @@ router.redirect({
 })
 
 router.start(App, '#app')
+
+// new Vue({
+//   el: 'body',
+//   components: { App }
+// })
