@@ -7,7 +7,7 @@
         <p>{{ error }}</p>
       </div>
 
-      <!--<template v-for="category in categories">
+      <template v-for="category in categories">
         <h2>{{ category.name }}</h2>
 
         <ul>
@@ -15,7 +15,7 @@
             <a href="{{ link.url }}">{{ link.title ? link.title : link.url }}</a>
           </li>
         </ul>
-      </template>-->
+      </template>
 
     </div>
   </div>
@@ -26,30 +26,32 @@
 
 <script>
   import auth from '../auth'
-  import NewCategoryModal from './NewCategoryModal'
-  import NewLinkModal from './NewLinkModal'
+  // import NewCategoryModal from './NewCategoryModal'
+  // import NewLinkModal from './NewLinkModal'
+
+  import store from '../store';
 
   export default {
 
-    components: {
-      NewCategoryModal,
-      NewLinkModal
-    },
+    // components: {
+    //   NewCategoryModal,
+    //   NewLinkModal
+    // },
 
-    props: ['showNewCategoryModal', 'showNewLinkModal'],
+    // props: ['showNewCategoryModal', 'showNewLinkModal'],
 
     data() {
       return {
         categories: [],
-        error: ''
+        error: '',
+        sharedState: store.state
       }
     },
 
     methods: {
       getCategories() {
         // console.log('getCategories')
-        // this.$http.get('https://dry-shore-86449.herokuapp.com/user/categories?include=links', { headers: auth.getAuthHeader() })
-        this.$http.get('http://links.app/user/categories?include=links')
+        this.$http.get(process.env.API_URL_CATEGORIES, { headers: auth.getAuthHeader() })
           .then((response) => {
             this.categories = response.body.data
           }, (response) => {
@@ -59,17 +61,20 @@
     },
 
     ready() {
-        this.getCategories()
+        this.getCategories();
+
+        store.getCategories();
+        console.log(this.sharedState);
     },
 
     route: {
       canActivate() {
-        return auth.user.authenticated
+        return auth.isLogged();
       }
     },
 
-    events: {
-      'addedCategory': 'getCategories'
-    }
+    // events: {
+    //   'addedCategory': 'getCategories'
+    // }
   }
 </script>

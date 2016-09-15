@@ -1,104 +1,87 @@
 import {router} from '../main'
-// import * as localForage from 'localforage'<
 import * as jws from 'jws'
 import Vue from 'vue'
 
-// const API_URL = 'https://dry-shore-86449.herokuapp.com/'
-const API_URL = 'http://links.app/'
-const LOGIN_URL = API_URL + 'auth/login'
-const REGISTER_URL = API_URL + 'auth/register'
-const REFRESH_URL = API_URL + 'auth/refresh'
-
 export default {
-
   user: {
     authenticated: false
   },
+  authenticated: false,
+  token: null,
 
-  login(context, creds, redirect) {
+  /*login(context, creds, redirect) {
 
-    context.$http.post(LOGIN_URL, creds).then((response) => {
-      // console.log(response.body)
-      localStorage.setItem('id_token', response.body.token)
-      this.user.authenticated = true
-      if (redirect) router.go(redirect)
-    }, (response) => {
-      console.log(response)
-      context.error = response.body.error
-    })
-  },
-
-  register(context, creds, redirect) {
-
-    context.$http.post(REGISTER_URL, creds).then((response) => {
-      localStorage.setItem('id_token', response.body.token)
-      this.user.authenticated = true
-      if (redirect) router.go(redirect)
-    }, (response) => {
-      context.error = response.body.error
-    })
-  },
-
-  refresh() {
-    return Vue.http.get(`${API_URL}/auth/refresh`)
+    context.$http.post(process.env.API_URL_LOGIN, creds)
       .then((response) => {
-        const token = response.headers.get('Authorization').split(" ")[1]
-        localStorage.setItem('id_token', token)
+        // console.log(response.body)
+        localStorage.setItem('id_token', response.body.token)
+        this.user.authenticated = true
+        if (redirect) router.go(redirect)
+      }, (response) => {
+        // console.log(response)
+        context.error = response.body.error
       })
-    // return Vue.http.post(LOGIN_URL, {email: 'user@email.com', password: 'password'})
-  },
+  },*/
 
-  refreshToken(context) {
+  /*register(context, creds, redirect) {
+    context.$http.post(process.env.API_URL_REGISTER, creds)
+      .then((response) => {
+        console.log(response)
+        localStorage.setItem('id_token', response.body.token)
+        this.user.authenticated = true      // console.log(decoded)
+        if (redirect) router.go(redirect)
+      }, (response) => {
+        // console.log(response)
+        context.error = response.body.error
+      })
+  },*/
 
-    return context.$http.get(REFRESH_URL, { headers: this.getAuthHeader() })
-    // .then((response) => {
-    //   // console.log(response)
-    //   // console.log(response.headers.get('Authorization').split(" ")[1])
-    //   localStorage.setItem(
-    //     'id_token',
-    //     response.headers.get('Authorization').split(" ")[1]
-    //   )
-    //   callback()
-    // }, (response) => {
-    //   console.log('error')
-    //   this.logout()
-    // })
+  /*logout() {
+    localStorage.removeItem('id_token')
+    this.user.authenticated = false
+  },*/
+
+  login(token) {
+    this.token = token;
+    this.authenticated = true;
+    this.user.authenticated = true;
+    localStorage.setItem('linksapp-jwt', this.token);
   },
 
   logout() {
-
-    localStorage.removeItem('id_token')
-    this.user.authenticated = false
+    this.token = null;
+    this.authenticated = false;
+    this.user.authenticated = false;
+    localStorage.removeItem('linksapp-jwt');
   },
 
   checkAuth() {
+    const jwt = localStorage.getItem('linksapp-jwt');
 
-    // const jwt = localStorage.getItem('id_token')
+    if (jwt) {
+      const decoded = jws.decode(jwt);
 
-    // if (jwt) {
-    //   const decoded = jws.decode(jwt)
-    //   // console.log(decoded)
+      if (decoded) {
+        if (Math.floor(Date.now() / 1000) < decoded.payload.exp) {
+          this.authenticated = true;
+          return;
+        }
+        console.log('jwt expired :: ', new Date(decoded.payload.exp * 1000));
+      }
+    }
 
-    //   if (decoded) {
-    //     if (Math.floor(Date.now() / 1000) < decoded.payload.exp) {
-    //       // console.log('jwt not expired', new Date(decoded.payload.exp * 1000))
-    //       // console.log('now is', new Date(Date.now()))
-          this.user.authenticated = true
-    //       return true
-    //     }
-    //   }
-    // }
+    this.authenticated = false;
+    return;
+  },
 
-    // this.user.authenticated = false
-    // return false
-
-    // this.user.authenticated = (jwt) ? true : false;
+  isLogged() {
+    return this.authenticated;
   },
 
   getAuthHeader() {
     return {
-      'Authorization': 'Bearer ' + localStorage.getItem('id_token')
-    }
+      'Authorization': 'Bearer ' + localStorage.getItem('linksapp-jwt')
+    };
   }
 
 }

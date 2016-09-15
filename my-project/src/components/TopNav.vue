@@ -12,27 +12,15 @@
           <li class="nav-item" v-if="user.authenticated">
             <a class="nav-link" v-link="'/home'">Home</a>
           </li>
-          <!--<li class="nav-item" v-if="user.authenticated">
-            <button type="button" class="btn btn-outline-primary" @click="showNewCategoryModal = true">Add Category</button>
-          </li>-->
-          <!--<li class="nav-item" v-if="user.authenticated">
-            <button type="button" class="btn btn-outline-primary" @click="showNewLinkModal = true">Add Link</button>
-          </li>-->
           <li class="nav-item" v-if="user.authenticated">
-          <a class="nav-link"  v-link="'/logout'">Logout</a>
-        </li>
-
-          <!--<li class="nav-item" v-if="user.authenticated">
-            <a class="nav-link" v-link="'/home'" @click="refreshToken()">Refresh Token</a>
-          </li>-->
-
-          <!--<li class="nav-item">
-            <a href="#" @click="currentView = 'create'" class="nav-link" v-bind:class="{ 'active': createView }">Create</a>
+            <a class="nav-link" v-link="'/links/create/category'">Add Category</a>
           </li>
-
-          <li class="nav-item">
-            <a href="#" @click="currentView = 'home'" class="nav-link" v-bind:class="{ 'active': homeView }">Home</a>
-          </li>-->
+          <li class="nav-item" v-if="user.authenticated">
+            <a class="nav-link" v-link="'/links/create/link'">Add Link</a>
+          </li>
+          <li class="nav-item" v-if="user.authenticated">
+            <a class="nav-link" href="#" @click="logout()">Logout</a>
+          </li>
         </ul>
       </nav>
       <h3 class="text-muted">Links.app</h3>
@@ -41,19 +29,16 @@
 </template>
 
 <script>
-    export default {
-      // props: [ 'currentView' ],
-      props: [ 'user' ],
-        // computed: {
-        //     loggedIn () {
-        //         return true
-        //     },
-        //     createView () {
-        //       return this.currentView === 'create'
-        //     },
-        //     homeView () {
-        //       return this.currentView === 'home'
-        //     }
-        // }
+  import auth from '../auth';
+
+  export default {
+    props: [ 'user' ],
+
+    methods: {
+      logout() {
+        auth.logout();
+        this.$router.go('/');
+      }
     }
+  }
 </script>

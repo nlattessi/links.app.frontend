@@ -1,95 +1,67 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import VueResource from 'vue-resource'
+import Vue from 'vue';
+import VueRouter from 'vue-router';
+import VueResource from 'vue-resource';
 
-import App from './components/App'
-import Login from './components/Login'
-import Logout from './components/Logout.vue'
-import Register from './components/Register'
-import Home from './components/Home'
-import Create from './components/Create.vue'
+import App from './components/App.vue';
+import Login from './components/Auth/Login.vue';
+import Register from './components/Auth/Register.vue';
+import Home from './components/Home.vue';
+import CreateCategory from './components/Links/CreateCategory.vue';
+import CreateLink from './components/Links/CreateLink.vue';
 
-import auth from './auth'
+import auth from './auth';
 
-import './assets/base.css'
+import './assets/base.css';
 
-Vue.use(VueResource)
-Vue.use(VueRouter)
+Vue.use(VueResource);
+Vue.use(VueRouter);
 
-// Vue.http.headers.common['Authorization'] = 'Bearer ' + localStorage.getItem('id_token')
-// Attach the token on every request
-Vue.http.interceptors.push((request, next) => {
-  const token = localStorage.getItem('id_token')
-  console.log(token)
-
-  if (token) {
-    request.headers.set('Authorization', `Bearer ${token}`)
-  }
-
-  next()
-})
-
-// Attempts to refresh the token
 Vue.http.interceptors.push((request, next) => {
   next((response) => {
-    if (response.status === 401) {
-      if (response.body.error.message === 'Token has expired') {
-        return auth.refresh()
-          .then((response) => {
-            const token = response.headers.get('Authorization').split(" ")[1]
-            localStorage.setItem('id_token', token)
-            request.headers.set('Authorization', `Bearer ${token}`)
-            return Vue.http(request)
-          }, (response) => {
-            console.log('error')
-            console.log(response)
-          })
-      }
+    if (response.status === 401 && auth.isLogged()) {
 
-      if (response.body.error.message === 'The token has been blacklisted') {
-        auth.logout()
-        return router.go('/')
-      }
+      console.log('Error 401');
+      console.log('Error status :: ', response.body.error.status);
+      console.log('Error message :: ', response.body.error.message);
+
+      auth.logout();
+      Vue.router.go('/');
     }
-  })
-})
+  });
+});
 
-auth.checkAuth()
+auth.checkAuth();
 
 export const router = new VueRouter({
   linkActiveClass: 'active'
-})
+});
 
 router.map({
   '/': {
     component: {
-      template: '<h1>Please login or register to use the app!</h1>'
+      template: '<h1>Please login or register</h1>'
     }
-  },
-  '/home': {
-    component: Home
   },
   '/login': {
     component: Login
   },
-  '/logout': {
-    component: Logout
-  },
   '/register': {
     component: Register
   },
-  '/create/link': {
-    component: Create
-  }
-})
+  '/links/': {
+    // component: Links
+    component: Home
+  },
+  '/links/create/category': {
+    component: CreateCategory
+  },
+  '/links/create/link': {
+    component: CreateLink
+  },
+});
 
 router.redirect({
   '*': '/'
-})
+});
 
-router.start(App, '#app')
-
-// new Vue({
-//   el: 'body',
-//   components: { App }
-// })
+router.start(App, '#app');
