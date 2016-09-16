@@ -8,8 +8,11 @@
 
         <alert :alerts.sync="alerts"></alert>
 
-        <button type="button" class="btn btn-primary btn-lg btn-block">Using Facebook Account</button>
-        <button type="button" class="btn btn-danger btn-lg btn-block">Using Google Account</button>
+        <button type="button" class="btn btn-primary btn-lg btn-block" @click="logInWithFacebook()" :disabled="loggingIn">Using Facebook Account</button>
+        <button type="button" class="btn btn-danger btn-lg btn-block" @click="logInWithGoogle()" :disabled="loggingIn">Using Google Account</button>
+
+        <!--<div class="g-signin2" data-onsuccess="onSignIn"></div>-->
+
         <hr>
         <p class="text-md-center">Or</p>
         <hr>
@@ -37,6 +40,8 @@
 <script>
   import auth from '../../auth';
   import Alert from '../Alert.vue';
+
+  import firebase from '../../auth-firebase';
 
   export default {
     components: { Alert },
@@ -81,6 +86,92 @@
             }
             this.loggingIn = false;
           })
+      },
+
+      logInWithFacebook () {
+        // this.loggingIn = true;
+        // var self = this;
+        // FB.login(function(response) {
+        //   if (response.authResponse) {
+        //     self.$http.get(`${process.env.API_URL_FACEBOOK_LOGIN}?accessToken=${response.authResponse.accessToken}`)
+        //       .then((response) => {
+        //         auth.login(response.body.token);
+        //         self.$dispatch('userLoggedIn');
+        //         self.$router.go('/links');
+        //     }, (response) => {
+        //       self.alerts = [];
+        //       if (response.status === 404 || response.status === 422) {
+        //         if (response.status === 422) {
+        //           for (const key in response.body) {
+        //             if (response.body.hasOwnProperty(key)) {
+        //               self.alerts.push({
+        //                 type: 'danger',
+        //                 message: response.body[key]
+        //               });
+        //             }
+        //           }
+        //         } else {
+        //           self.alerts.push({
+        //             type: 'danger',
+        //             message: 'Sorry, this credentials are invalid.'
+        //           });
+        //         }
+        //       }
+        //       self.loggingIn = false;
+        //     });
+        //   } else {
+        //     alert('user cancelled login or did not fully authorize');
+        //   }
+        // });
+        // return false;
+
+        var provider = new firebase.auth.FacebookAuthProvider();
+        firebase.auth().signInWithPopup(provider).then(function(result) {
+          // This gives you a Facebook Access Token. You can use it to access the Facebook API.
+          var token = result.credential.accessToken;
+          // The signed-in user info.
+          var user = result.user;
+          // ...
+          console.log('OK');
+          console.log(user);
+        }).catch(function(error) {
+          // Handle Errors here.
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          // The email of the user's account used.
+          var email = error.email;
+          // The firebase.auth.AuthCredential type that was used.
+          var credential = error.credential;
+          // ...
+          console.log('ERROR!');
+          console.log(error);
+        });
+      },
+
+      logInWithGoogle () {
+
+        var provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider).then(function(result) {
+          // This gives you a Google Access Token. You can use it to access the Google API.
+          var token = result.credential.accessToken;
+          // The signed-in user info.
+          var user = result.user;
+          // ...
+          console.log('OK');
+          console.log(user);
+        }).catch(function(error) {
+          // Handle Errors here.
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          // The email of the user's account used.
+          var email = error.email;
+          // The firebase.auth.AuthCredential type that was used.
+          var credential = error.credential;
+          // ...
+          console.log('ERROR!');
+          console.log(error);
+        });
+
       }
     }
   }

@@ -1,6 +1,7 @@
 module.exports = {
   NODE_ENV: '"production"',
   API_URL_LOGIN: '"http://links.app/auth/login"',
+  API_URL_FACEBOOK_LOGIN: '"http://links.app/auth/facebook"',
   API_URL_REGISTER: '"http://links.app/auth/register"',
   API_URL_REFRESH: '"http://links.app/auth/refresh"',
   API_URL_CATEGORIES: '"http://links.app/user/categories"',

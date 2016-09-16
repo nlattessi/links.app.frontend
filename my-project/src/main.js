@@ -16,6 +16,8 @@ import './assets/base.css';
 Vue.use(VueResource);
 Vue.use(VueRouter);
 
+Vue.http.options.xhr = {withCredentials: true};
+
 Vue.http.interceptors.push((request, next) => {
   next((response) => {
     if (response.status === 401 && auth.isLogged()) {
@@ -33,7 +35,10 @@ Vue.http.interceptors.push((request, next) => {
 auth.checkAuth();
 
 export const router = new VueRouter({
-  linkActiveClass: 'active'
+  linkActiveClass: 'active',
+  hashbang: false,
+  history: true,
+  mode: 'html5'
 });
 
 router.map({
