@@ -8,6 +8,7 @@ export default {
   },
   authenticated: false,
   token: null,
+  origin: null,
 
   /*login(context, creds, redirect) {
 
@@ -41,10 +42,11 @@ export default {
     this.user.authenticated = false
   },*/
 
-  login(token) {
+  login(token, origin) {
     this.token = token;
     this.authenticated = true;
     this.user.authenticated = true;
+    this.origin = origin;
     localStorage.setItem('linksapp-jwt', this.token);
   },
 
@@ -52,6 +54,7 @@ export default {
     this.token = null;
     this.authenticated = false;
     this.user.authenticated = false;
+    this.origin = null;
     localStorage.removeItem('linksapp-jwt');
   },
 

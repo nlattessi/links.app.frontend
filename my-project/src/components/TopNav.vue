@@ -3,14 +3,14 @@
     <div class="header clearfix">
       <nav>
         <ul class="nav nav-pills pull-xs-right">
-          <li class="nav-item" v-if="!user.authenticated">
+          <!--<li class="nav-item" v-if="!user.authenticated">
             <a class="nav-link" v-link="'/login'">Login</a>
-          </li>
-          <li class="nav-item" v-if="!user.authenticated">
+          </li>-->
+          <!--<li class="nav-item" v-if="!user.authenticated">
             <a class="nav-link" v-link="'/register'">Register</a>
-          </li>
+          </li>-->
           <li class="nav-item" v-if="user.authenticated">
-            <a class="nav-link" v-link="'/home'">Home</a>
+            <a class="nav-link" v-link="'/links'">Links</a>
           </li>
           <li class="nav-item" v-if="user.authenticated">
             <a class="nav-link" v-link="'/links/create/category'">Add Category</a>

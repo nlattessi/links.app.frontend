@@ -42,12 +42,12 @@ export const router = new VueRouter({
 });
 
 router.map({
-  '/': {
-    // component: {
-    //   template: '<h1>Please login or register</h1>'
-    // }
-    component: Login
-  },
+  // '/': {
+  //   // component: {
+  //   //   template: '<h1>Please login or register</h1>'
+  //   // }
+  //   component: Login
+  // },
   '/login': {
     component: Login
   },

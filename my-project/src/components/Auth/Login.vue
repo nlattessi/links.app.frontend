@@ -33,6 +33,11 @@
 
         </form>
       </div>
+
+      <div class="card-footer text-muted">
+        <p class="card-title text-md-right">Don't have an account? <button type="submit" class="btn btn-outline-secondary btn-sm" v-link="'/register'">Sign up</button></p>
+      </div>
+
     </div>
   </div>
 </template>
@@ -62,7 +67,7 @@
         this.loggingIn = true;
         this.$http.post(process.env.API_URL_LOGIN, this.formUser)
           .then((response) => {
-            auth.login(response.body.token);
+            auth.login(response.body.token, 'local');
             this.$dispatch('userLoggedIn');
             this.$router.go('/links');
           }, (response) => {
@@ -89,8 +94,8 @@
       },
 
       logInWithFacebook () {
-        // this.loggingIn = true;
-        // var self = this;
+        this.loggingIn = true;
+        const self = this;
         // FB.login(function(response) {
         //   if (response.authResponse) {
         //     self.$http.get(`${process.env.API_URL_FACEBOOK_LOGIN}?accessToken=${response.authResponse.accessToken}`)
@@ -125,16 +130,28 @@
         // });
         // return false;
 
-        var provider = new firebase.auth.FacebookAuthProvider();
-        firebase.auth().signInWithPopup(provider).then(function(result) {
+        const provider = new firebase.auth.FacebookAuthProvider();
+        firebase.auth().signInWithPopup(provider).then((result) => {
           // This gives you a Facebook Access Token. You can use it to access the Facebook API.
-          var token = result.credential.accessToken;
+          const token = result.credential.accessToken;
           // The signed-in user info.
-          var user = result.user;
+          const user = result.user;
           // ...
           console.log('OK');
-          console.log(user);
-        }).catch(function(error) {
+          // console.log('token :: ', token);
+          // console.log(user);
+
+          firebase.auth().currentUser.getToken(/* forceRefresh */ true).then(function(idToken) {
+            // Send token to your backend via HTTPS
+            // ...
+            console.log(idToken);
+          }).catch(function(error) {
+            // Handle error
+          });
+
+
+
+        }).catch((error) => {
           // Handle Errors here.
           var errorCode = error.code;
           var errorMessage = error.message;
