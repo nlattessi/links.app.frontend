@@ -38,9 +38,10 @@ export const router = new VueRouter({
 
 router.map({
   '/': {
-    component: {
-      template: '<h1>Please login or register</h1>'
-    }
+    // component: {
+    //   template: '<h1>Please login or register</h1>'
+    // }
+    component: Login
   },
   '/login': {
     component: Login
@@ -61,7 +62,7 @@ router.map({
 });
 
 router.redirect({
-  '*': '/'
+  '*': '/login'
 });
 
 router.start(App, '#app');

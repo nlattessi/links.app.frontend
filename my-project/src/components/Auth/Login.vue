@@ -2,22 +2,31 @@
   <div class="row">
     <div class="col-md-8 offset-md-2">
       <div class="card card-block">
-        <h3 class="card-title">Log into your account</h3>
-        <form role="form" v-on:submit.prevent="login">
+        <h3 class="card-title text-md-center">Log In</h3>
 
-          <alert :alerts.sync="alerts"></alert>
+        <hr>
+
+        <alert :alerts.sync="alerts"></alert>
+
+        <button type="button" class="btn btn-primary btn-lg btn-block">Using Facebook Account</button>
+        <button type="button" class="btn btn-danger btn-lg btn-block">Using Google Account</button>
+        <hr>
+        <p class="text-md-center">Or</p>
+        <hr>
+
+        <form role="form" v-on:submit.prevent="login">
 
           <div class="form-group">
             <label for="email">Email</label>
-            <input type="email" class="form-control" id="email" placeholder="user@email.com" v-model="formUser.email" />
+            <input type="email" class="form-control" id="email" v-model="formUser.email" />
           </div>
 
           <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" class="form-control" id="password" placeholder="Password" v-model="formUser.password" />
+            <input type="password" class="form-control" id="password" v-model="formUser.password" />
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block" :disabled="loggingIn">Login</button>
+          <button type="submit" class="btn btn-info pull-md-right" :disabled="loggingIn">Login</button>
 
         </form>
       </div>
