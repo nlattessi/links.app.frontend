@@ -9,9 +9,18 @@
         <alert :alerts.sync="alerts"></alert>
 
         <button type="button" class="btn btn-primary btn-lg btn-block" @click="logInWithFacebook()" :disabled="loggingIn">Using Facebook Account</button>
-        <button type="button" class="btn btn-danger btn-lg btn-block" @click="logInWithGoogle()" :disabled="loggingIn">Using Google Account</button>
+        <!-- <button type="button" class="btn btn-danger btn-lg btn-block" @click="logInWithGoogle()" :disabled="loggingIn">Using Google Account</button> -->
 
-        <!--<div class="g-signin2" data-onsuccess="onSignIn"></div>-->
+        <!-- <div class="g-signin2" data-onsuccess="onSignIn"></div> -->
+
+        <div id="gSignInWrapper">
+          <span class="label">Sign in with:</span>
+          <div id="customBtn" class="customGPlusSignIn">
+            <span class="icon"></span>
+            <span class="buttonText">Google</span>
+          </div>
+        </div>
+        <div id="name"></div>
 
         <hr>
         <p class="text-md-center">Or</p>
@@ -58,7 +67,12 @@
           password: null
         },
         alerts: [],
-        loggingIn: false
+        loggingIn: false,
+
+
+        googleUser: {},
+
+
       }
     },
 
@@ -145,8 +159,11 @@
             // Send token to your backend via HTTPS
             // ...
             console.log(idToken);
+
+            self.loggingIn = false;
           }).catch(function(error) {
             // Handle error
+            self.loggingIn = false;
           });
 
 
@@ -162,11 +179,14 @@
           // ...
           console.log('ERROR!');
           console.log(error);
+
+          self.loggingIn = false;
         });
       },
 
       logInWithGoogle () {
-
+        var self = this;
+        self.loggingIn = false;
         var provider = new firebase.auth.GoogleAuthProvider();
         firebase.auth().signInWithPopup(provider).then(function(result) {
           // This gives you a Google Access Token. You can use it to access the Google API.
@@ -176,6 +196,8 @@
           // ...
           console.log('OK');
           console.log(user);
+          
+          self.loggingIn = false;
         }).catch(function(error) {
           // Handle Errors here.
           var errorCode = error.code;
@@ -187,9 +209,89 @@
           // ...
           console.log('ERROR!');
           console.log(error);
+
+          self.loggingIn = false;
         });
 
+      },
+
+      // onSignIn (googleUser) {
+      //   var profile = googleUser.getBasicProfile();
+      //   console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+      //   console.log('Name: ' + profile.getName());
+      //   console.log('Image URL: ' + profile.getImageUrl());
+      //   console.log('Email: ' + profile.getEmail());
+      // }
+
+      startApp () {
+        gapi.load('auth2', function(){
+          // Retrieve the singleton for the GoogleAuth library and set up the client.
+          auth2 = gapi.auth2.init({
+            client_id: '367309930083-53pu80b66ua3jro4fdu0tv8cvsqceqhs.apps.googleusercontent.com',
+            cookiepolicy: 'single_host_origin',
+            // Request scopes in addition to 'profile' and 'email'
+            //scope: 'additional_scope'
+          });
+          attachSignin(document.getElementById('customBtn'));
+        });
+      },
+
+      attachSignin (element) {
+        console.log(element.id);
+        auth2.attachClickHandler(element, {},
+            function(googleUser) {
+              document.getElementById('name').innerText = "Signed in: " +
+                  googleUser.getBasicProfile().getName();
+            }, function(error) {
+              alert(JSON.stringify(error, undefined, 2));
+            });
       }
+    },
+
+    ready () {
+      console.log(gapi);
+      this.startApp();
     }
   }
 </script>
+
+<style>
+  #customBtn {
+    display: inline-block;
+    background: white;
+    color: #444;
+    width: 190px;
+    border-radius: 5px;
+    border: thin solid #888;
+    box-shadow: 1px 1px 1px grey;
+    white-space: nowrap;
+  }
+  
+  #customBtn:hover {
+    cursor: pointer;
+  }
+  
+  span.label {
+    font-family: serif;
+    font-weight: normal;
+  }
+  
+  span.icon {
+    background: url('/g-normal.png') transparent 5px 50% no-repeat;
+    display: inline-block;
+    vertical-align: middle;
+    width: 42px;
+    height: 42px;
+  }
+  
+  span.buttonText {
+    display: inline-block;
+    vertical-align: middle;
+    padding-left: 42px;
+    padding-right: 42px;
+    font-size: 14px;
+    font-weight: bold;
+    /* Use the Roboto font that is loaded in the <head> */
+    font-family: 'Roboto', sans-serif;
+  }
+</style>
