@@ -23,7 +23,8 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label for="password_confirmation">Confirm Password</label>
-                <input type="password" class="form-control" id="password_confirmation" placeholder="Password" v-model="formUser.password_confirmation" />
+                <input type="password" class="form-control" id="password_confirmation" placeholder="Password" v-model="formUser.password_confirmation"
+                />
               </div>
             </div>
           </div>
@@ -32,6 +33,11 @@
 
         </form>
       </div>
+
+      <div class="card-footer text-muted">
+        <p class="card-title text-md-right">Already have an account? <button type="submit" class="btn btn-outline-secondary btn-sm" v-link="'/login'">Log in</button></p>
+      </div>
+
     </div>
   </div>
 </template>
