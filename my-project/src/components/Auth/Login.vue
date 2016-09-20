@@ -55,8 +55,6 @@
   import auth from '../../auth';
   import Alert from '../Alert.vue';
 
-  import firebase from '../../auth-firebase';
-
   export default {
     components: { Alert },
 
@@ -69,10 +67,7 @@
         alerts: [],
         loggingIn: false,
 
-
-        googleUser: {},
-
-
+        googleAuth2: null,
       }
     },
 
@@ -110,147 +105,84 @@
       logInWithFacebook () {
         this.loggingIn = true;
         const self = this;
-        // FB.login(function(response) {
-        //   if (response.authResponse) {
-        //     self.$http.get(`${process.env.API_URL_FACEBOOK_LOGIN}?accessToken=${response.authResponse.accessToken}`)
-        //       .then((response) => {
-        //         auth.login(response.body.token);
-        //         self.$dispatch('userLoggedIn');
-        //         self.$router.go('/links');
-        //     }, (response) => {
-        //       self.alerts = [];
-        //       if (response.status === 404 || response.status === 422) {
-        //         if (response.status === 422) {
-        //           for (const key in response.body) {
-        //             if (response.body.hasOwnProperty(key)) {
-        //               self.alerts.push({
-        //                 type: 'danger',
-        //                 message: response.body[key]
-        //               });
-        //             }
-        //           }
-        //         } else {
-        //           self.alerts.push({
-        //             type: 'danger',
-        //             message: 'Sorry, this credentials are invalid.'
-        //           });
-        //         }
-        //       }
-        //       self.loggingIn = false;
-        //     });
-        //   } else {
-        //     alert('user cancelled login or did not fully authorize');
-        //   }
-        // });
-        // return false;
-
-        const provider = new firebase.auth.FacebookAuthProvider();
-        firebase.auth().signInWithPopup(provider).then((result) => {
-          // This gives you a Facebook Access Token. You can use it to access the Facebook API.
-          const token = result.credential.accessToken;
-          // The signed-in user info.
-          const user = result.user;
-          // ...
-          console.log('OK');
-          // console.log('token :: ', token);
-          // console.log(user);
-
-          firebase.auth().currentUser.getToken(/* forceRefresh */ true).then(function(idToken) {
-            // Send token to your backend via HTTPS
-            // ...
-            console.log(idToken);
-
-            self.loggingIn = false;
-          }).catch(function(error) {
-            // Handle error
-            self.loggingIn = false;
-          });
-
-
-
-        }).catch((error) => {
-          // Handle Errors here.
-          var errorCode = error.code;
-          var errorMessage = error.message;
-          // The email of the user's account used.
-          var email = error.email;
-          // The firebase.auth.AuthCredential type that was used.
-          var credential = error.credential;
-          // ...
-          console.log('ERROR!');
-          console.log(error);
-
-          self.loggingIn = false;
+        FB.login(function(response) {
+          if (response.authResponse) {
+            self.$http.get(`${process.env.API_URL_FACEBOOK_LOGIN}?accessToken=${response.authResponse.accessToken}`)
+              .then((response) => {
+                auth.login(response.body.token);
+                self.$dispatch('userLoggedIn');
+                self.$router.go('/links');
+            }, (response) => {
+              self.alerts = [];
+              if (response.status === 404 || response.status === 422) {
+                if (response.status === 422) {
+                  for (const key in response.body) {
+                    if (response.body.hasOwnProperty(key)) {
+                      self.alerts.push({
+                        type: 'danger',
+                        message: response.body[key]
+                      });
+                    }
+                  }
+                } else {
+                  self.alerts.push({
+                    type: 'danger',
+                    message: 'Sorry, this credentials are invalid.'
+                  });
+                }
+              }
+              self.loggingIn = false;
+            });
+          } else {
+            alert('user cancelled login or did not fully authorize');
+          }
         });
+        return false;
       },
 
-      logInWithGoogle () {
-        var self = this;
-        self.loggingIn = false;
-        var provider = new firebase.auth.GoogleAuthProvider();
-        firebase.auth().signInWithPopup(provider).then(function(result) {
-          // This gives you a Google Access Token. You can use it to access the Google API.
-          var token = result.credential.accessToken;
-          // The signed-in user info.
-          var user = result.user;
-          // ...
-          console.log('OK');
-          console.log(user);
-          
-          self.loggingIn = false;
-        }).catch(function(error) {
-          // Handle Errors here.
-          var errorCode = error.code;
-          var errorMessage = error.message;
-          // The email of the user's account used.
-          var email = error.email;
-          // The firebase.auth.AuthCredential type that was used.
-          var credential = error.credential;
-          // ...
-          console.log('ERROR!');
-          console.log(error);
-
-          self.loggingIn = false;
-        });
-
-      },
-
-      // onSignIn (googleUser) {
-      //   var profile = googleUser.getBasicProfile();
-      //   console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
-      //   console.log('Name: ' + profile.getName());
-      //   console.log('Image URL: ' + profile.getImageUrl());
-      //   console.log('Email: ' + profile.getEmail());
-      // }
-
-      startApp () {
-        gapi.load('auth2', function(){
+      startGoogleLogin () {
+        gapi.load('auth2', () => {
           // Retrieve the singleton for the GoogleAuth library and set up the client.
-          auth2 = gapi.auth2.init({
+          this.googleAuth2 = gapi.auth2.init({
             client_id: '367309930083-53pu80b66ua3jro4fdu0tv8cvsqceqhs.apps.googleusercontent.com',
             cookiepolicy: 'single_host_origin',
             // Request scopes in addition to 'profile' and 'email'
             //scope: 'additional_scope'
           });
-          attachSignin(document.getElementById('customBtn'));
+          this.attachGoogleSignin(document.getElementById('customBtn'));
         });
       },
 
-      attachSignin (element) {
-        console.log(element.id);
-        auth2.attachClickHandler(element, {},
-            function(googleUser) {
-              document.getElementById('name').innerText = "Signed in: " +
-                  googleUser.getBasicProfile().getName();
-            }, function(error) {
+      attachGoogleSignin (element) {
+        this.googleAuth2.attachClickHandler(element, {},
+            (googleUser) => {
+              document.getElementById('name').innerText = "Signed in: " + googleUser.getBasicProfile().getName();
+              var profile = googleUser.getBasicProfile();
+              console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+              console.log('Name: ' + profile.getName());
+              console.log('Image URL: ' + profile.getImageUrl());
+              console.log('Email: ' + profile.getEmail());
+
+              var id_token = googleUser.getAuthResponse().id_token;
+              console.log(id_token);
+
+              this.$http.get(`${process.env.API_URL_GOOGLE_LOGIN}?accessToken=${id_token}`)
+                .then((response) => {
+                  console.log('google auth ok');
+                  console.log(response);
+                }, (response) => {
+                  console.log('google auth error');
+                  console.log(response);
+                });
+
+            }, (error) => {
               alert(JSON.stringify(error, undefined, 2));
             });
       }
     },
 
     ready () {
-      console.log(gapi);
-      this.startApp();
+      this.startGoogleLogin();
     }
   }
 </script>
@@ -277,7 +209,7 @@
   }
   
   span.icon {
-    background: url('/g-normal.png') transparent 5px 50% no-repeat;
+    /*background: url('/g-normal.png') transparent 5px 50% no-repeat;*/
     display: inline-block;
     vertical-align: middle;
     width: 42px;
