@@ -8,28 +8,34 @@
 
         <alert :alerts.sync="alerts"></alert>
 
-        <button type="button" class="btn btn-primary btn-lg btn-block" @click="logInWithFacebook()" :disabled="loggingIn">Using Facebook Account</button>
-        <button type="button" class="btn btn-danger btn-lg btn-block" @click="logInWithGoogle()" :disabled="loggingIn">Using Google Account</button>
+        <div class="text-md-center" v-if="loggingIn" transition="fade">
+          <img src="http://s14.postimg.org/boisrfbv1/battery.gif" class="img-rounded" alt="...">
+          <p class="content">Logging in...</p>
+        </div>
+        <div v-else>
 
-        <hr>
-        <p class="text-md-center">Or</p>
-        <hr>
+          <button type="button" class="btn btn-primary btn-lg btn-block" @click="logInWithFacebook()" :disabled="loggingIn">Using Facebook Account</button>
+          <button type="button" class="btn btn-danger btn-lg btn-block" @click="logInWithGoogle()" :disabled="loggingIn">Using Google Account</button>
 
-        <form role="form" v-on:submit.prevent="login">
+          <hr>
+          <p class="text-md-center">Or</p>
+          <hr>
 
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" class="form-control" id="email" v-model="formUser.email" />
-          </div>
+          <form role="form" v-on:submit.prevent="login">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" class="form-control" id="email" v-model="formUser.email" />
+            </div>
 
-          <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" class="form-control" id="password" v-model="formUser.password" />
-          </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" class="form-control" id="password" v-model="formUser.password" />
+            </div>
 
-          <button type="submit" class="btn btn-info pull-md-right" :disabled="loggingIn">Login</button>
+            <button type="submit" class="btn btn-info pull-md-right" :disabled="loggingIn">Login</button>
+          </form>
 
-        </form>
+        </div>
       </div>
 
       <div class="card-footer text-muted">
