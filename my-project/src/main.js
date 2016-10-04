@@ -34,9 +34,9 @@ auth.checkAuth();
 
 export const router = new VueRouter({
   linkActiveClass: 'active',
-  hashbang: false,
-  history: true,
-  mode: 'html5'
+  // hashbang: false,
+  // history: true,
+  // mode: 'html5'
 });
 
 router.map({

@@ -1,4 +1,4 @@
-import { router } from '../main';
+// import { router } from '../main';
 import * as jws from 'jws';
 import Vue from 'vue';
 
