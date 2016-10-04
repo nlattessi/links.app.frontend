@@ -1,4 +1,4 @@
-<template>
+<!--<template>
 
   <div class="row">
     <div class="col-md-10 offset-md-4">
@@ -19,26 +19,35 @@
 
     </div>
   </div>
+</template>-->
 
-  <!--<new-category-modal :show.sync="showNewCategoryModal"></new-category-modal>-->
-  <!--<new-link-modal :show.sync="showNewLinkModal"></new-category-modal>-->
+<template>
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card card-block">
+                <h3 class="card-title text-md-center">Links</h3>
+
+                <hr>
+
+                <alert :alerts.sync="alerts"></alert>
+
+                <div class="text-md-center">
+                    <p class="content">Placeholder</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
-  import auth from '../auth'
-  // import NewCategoryModal from './NewCategoryModal'
-  // import NewLinkModal from './NewLinkModal'
+  import auth from '../../auth'
+  import store from '../../store';
 
-  import store from '../store';
+  import Alert from '../Alert.vue';
 
   export default {
-
-    // components: {
-    //   NewCategoryModal,
-    //   NewLinkModal
-    // },
-
-    // props: ['showNewCategoryModal', 'showNewLinkModal'],
+    components: { Alert },
 
     data() {
       return {
@@ -62,7 +71,6 @@
 
     ready() {
         this.getCategories();
-
         store.getCategories();
         console.log(this.sharedState);
     },

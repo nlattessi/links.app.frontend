@@ -2,24 +2,24 @@
   <div class="row">
     <div class="col-md-8 offset-md-2">
       <div class="card card-block">
-        <h3 class="card-title text-md-center">Log In</h3>
+        <h3 class="card-title text-md-center">Welcome!</h3>
 
         <hr>
 
         <alert :alerts.sync="alerts"></alert>
 
         <div class="text-md-center" v-if="loggingIn" transition="fade">
-          <img src="http://s14.postimg.org/boisrfbv1/battery.gif" class="img-rounded" alt="...">
+          <img src="./../../assets/battery.gif" class="img-rounded" alt="...">
           <p class="content">Logging in...</p>
         </div>
         <div v-else>
 
-          <button type="button" class="btn btn-primary btn-lg btn-block" @click="logInWithFacebook()" :disabled="loggingIn">Using Facebook Account</button>
+          <!--<button type="button" class="btn btn-primary btn-lg btn-block" @click="logInWithFacebook()" :disabled="loggingIn">Using Facebook Account</button>
           <button type="button" class="btn btn-danger btn-lg btn-block" @click="logInWithGoogle()" :disabled="loggingIn">Using Google Account</button>
 
           <hr>
           <p class="text-md-center">Or</p>
-          <hr>
+          <hr>-->
 
           <form role="form" v-on:submit.prevent="login">
             <div class="form-group">
@@ -48,10 +48,7 @@
 
 <script>
   import auth from '../../auth';
-  import googleauth from '../../google-auth';
   import Alert from '../Alert.vue';
-
-  // import googleAuth2 from '../../google-auth';
 
   export default {
     components: { Alert },
@@ -64,8 +61,6 @@
         },
         alerts: [],
         loggingIn: false,
-
-        // googleAuth2: null,
       }
     },
 
@@ -100,7 +95,7 @@
           })
       },
 
-      logInWithFacebook () {
+      /*logInWithFacebook () {
         this.loggingIn = true;
         FB.login((response) => {
           if (response.authResponse) {
@@ -134,9 +129,9 @@
             alert('user cancelled login or did not fully authorize');
           }
         });
-      },
+      },*/
 
-      logInWithGoogle () {
+      /*logInWithGoogle () {
         this.loggingIn = true;
         googleauth.client.signIn()
           .then((response) => {
@@ -169,54 +164,33 @@
             // this.loggingIn = false;
           });
 
-      },
+      },*/
     },
 
     ready() {
       if (auth.isLogged()) {
-        this.$router.go('/links/');
+        // this.$router.go('/links');
+        console.log(auth.isLogged());
       }
-    }
+    },
+    
+    route: {
+      data: function (transition) {
+        // if (auth.isLogged()) {
+        //   console.log(auth.isLogged());
+        //   transition.redirect('/links');
+        // } else {
+        //   transition.next();
+        // }
+      },
+
+      activate: function (transition) {
+        if (auth.isLogged()) {
+          transition.redirect('/links');
+        } else {
+          transition.next();
+        }
+      },
+    },
   }
 </script>
-
-<style>
-  #customBtn {
-    display: inline-block;
-    background: white;
-    color: #444;
-    width: 190px;
-    border-radius: 5px;
-    border: thin solid #888;
-    box-shadow: 1px 1px 1px grey;
-    white-space: nowrap;
-  }
-  
-  #customBtn:hover {
-    cursor: pointer;
-  }
-  
-  span.label {
-    font-family: serif;
-    font-weight: normal;
-  }
-  
-  span.icon {
-    /*background: url('/g-normal.png') transparent 5px 50% no-repeat;*/
-    display: inline-block;
-    vertical-align: middle;
-    width: 42px;
-    height: 42px;
-  }
-  
-  span.buttonText {
-    display: inline-block;
-    vertical-align: middle;
-    padding-left: 42px;
-    padding-right: 42px;
-    font-size: 14px;
-    font-weight: bold;
-    /* Use the Roboto font that is loaded in the <head> */
-    font-family: 'Roboto', sans-serif;
-  }
-</style>

@@ -1,18 +1,14 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import VueResource from 'vue-resource';
-
 import App from './components/App.vue';
 import Login from './components/Auth/Login.vue';
 import Register from './components/Auth/Register.vue';
-import Home from './components/Home.vue';
+import Logout from './components/Auth/Logout.vue';
+import Links from './components/Links/Links.vue';
 import CreateCategory from './components/Links/CreateCategory.vue';
 import CreateLink from './components/Links/CreateLink.vue';
-
 import auth from './auth';
-// import googleauth from './google-auth';
-auth.init();
-
 import './assets/base.css';
 
 Vue.use(VueResource);
@@ -29,7 +25,7 @@ Vue.http.interceptors.push((request, next) => {
       console.log('Error message :: ', response.body.error.message);
 
       auth.logout();
-      Vue.router.go('/');
+      Vue.router.go('/login');
     }
   });
 });
@@ -44,32 +40,39 @@ export const router = new VueRouter({
 });
 
 router.map({
-  // '/': {
-  //   // component: {
-  //   //   template: '<h1>Please login or register</h1>'
-  //   // }
-  //   component: Login
-  // },
   '/login': {
     component: Login
   },
   '/register': {
     component: Register
   },
-  '/links/': {
-    // component: Links
-    component: Home
+  '/logout': {
+    component: Logout
   },
-  '/links/create/category': {
-    component: CreateCategory
+  '/links': {
+    component: Links,
+    loggedInOnly: true
   },
-  '/links/create/link': {
-    component: CreateLink
+  '/create/category': {
+    component: CreateCategory,
+    loggedInOnly: true
+  },
+  '/create/link': {
+    component: CreateLink,
+    loggedInOnly: true
   },
 });
 
 router.redirect({
   '*': '/login'
+});
+
+router.beforeEach(function (transition) {
+  if (transition.to.loggedInOnly && !auth.isLogged()) {
+    transition.redirect('/login');
+  } else {
+    transition.next();
+  }
 });
 
 router.start(App, '#app');

@@ -18,13 +18,7 @@
       return {
         user: auth.user
       }
-    },
-
-    // methods: {
-    //   login: function() {
-    //     auth.login();
-    //   }
-    // }
+    }
   }
 </script>
 

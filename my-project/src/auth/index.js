@@ -1,14 +1,14 @@
-import {router} from '../main';
+import { router } from '../main';
 import * as jws from 'jws';
 import Vue from 'vue';
 
-import googleAuth from '../google-auth';
+// import googleAuth from '../google-auth';
 
 export default {
   user: {
     authenticated: false
   },
-  authenticated: false,
+  // authenticated: false,
   token: null,
   origin: null,
 
@@ -46,29 +46,27 @@ export default {
 
   login(token, origin) {
     this.token = token;
-    this.authenticated = true;
+    // this.authenticated = true;
     this.user.authenticated = true;
     this.origin = origin;
     localStorage.setItem('linksapp-jwt', this.token);
   },
 
   logout() {
-    if (this.origin === 'google') {
+    /*if (this.origin === 'google') {
       googleAuth.client.disconnect();
     } else if (this.origin === 'facebook') {
       FB.logout();
-    }
+    }*/
 
     this.token = null;
-    this.authenticated = false;
+    // this.authenticated = false;
     this.user.authenticated = false;
     this.origin = null;
     localStorage.removeItem('linksapp-jwt');
   },
 
   checkAuth() {
-    console.log(this.authenticated);
-
     const jwt = localStorage.getItem('linksapp-jwt');
 
     if (jwt) {
@@ -76,27 +74,22 @@ export default {
 
       if (decoded) {
         if (Math.floor(Date.now() / 1000) < decoded.payload.exp) {
-
-          console.log(this.authenticated);
-
-          this.authenticated = true;
-
-          console.log(this.authenticated);
-
+          // this.authenticated = true;
+          this.user.authenticated = true;
           return;
         }
-        console.log(this.authenticated);
         console.log('jwt expired :: ', new Date(decoded.payload.exp * 1000));
       }
     }
 
-console.log(this.authenticated);
-    this.authenticated = false;
+    // this.authenticated = false;
+    this.user.authenticated = false;
     return;
   },
 
   isLogged() {
-    return this.authenticated;
+    // return this.authenticated;
+    return this.user.authenticated;
   },
 
   getAuthHeader() {
@@ -106,7 +99,7 @@ console.log(this.authenticated);
   },
 
   init() {
-    googleAuth.init();
+    // googleAuth.init();
   }
 
 }

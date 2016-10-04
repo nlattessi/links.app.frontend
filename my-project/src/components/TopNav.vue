@@ -3,23 +3,17 @@
     <div class="header clearfix">
       <nav>
         <ul class="nav nav-pills pull-xs-right">
-          <!--<li class="nav-item" v-if="!user.authenticated">
-            <a class="nav-link" v-link="'/login'">Login</a>
-          </li>-->
-          <!--<li class="nav-item" v-if="!user.authenticated">
-            <a class="nav-link" v-link="'/register'">Register</a>
-          </li>-->
           <li class="nav-item" v-if="user.authenticated">
             <a class="nav-link" v-link="'/links'">Links</a>
           </li>
           <li class="nav-item" v-if="user.authenticated">
-            <a class="nav-link" v-link="'/links/create/category'">Add Category</a>
+            <a class="nav-link" v-link="'/create/category'">Add Category</a>
           </li>
           <li class="nav-item" v-if="user.authenticated">
-            <a class="nav-link" v-link="'/links/create/link'">Add Link</a>
+            <a class="nav-link" v-link="'/create/link'">Add Link</a>
           </li>
           <li class="nav-item" v-if="user.authenticated">
-            <a class="nav-link" href="#" @click="logout()">Logout</a>
+            <a class="nav-link" v-link="'/logout'">Logout</a>
           </li>
         </ul>
       </nav>
@@ -32,13 +26,6 @@
   import auth from '../auth';
 
   export default {
-    props: [ 'user' ],
-
-    methods: {
-      logout() {
-        auth.logout();
-        this.$router.go('/');
-      }
-    }
+    props: [ 'user' ]
   }
 </script>
