@@ -1,6 +1,8 @@
-import {router} from '../main'
-import * as jws from 'jws'
-import Vue from 'vue'
+import {router} from '../main';
+import * as jws from 'jws';
+import Vue from 'vue';
+
+import googleAuth from '../google-auth';
 
 export default {
   user: {
@@ -51,6 +53,12 @@ export default {
   },
 
   logout() {
+    if (this.origin === 'google') {
+      googleAuth.client.disconnect();
+    } else if (this.origin === 'facebook') {
+      FB.logout();
+    }
+
     this.token = null;
     this.authenticated = false;
     this.user.authenticated = false;
@@ -59,6 +67,8 @@ export default {
   },
 
   checkAuth() {
+    console.log(this.authenticated);
+
     const jwt = localStorage.getItem('linksapp-jwt');
 
     if (jwt) {
@@ -66,13 +76,21 @@ export default {
 
       if (decoded) {
         if (Math.floor(Date.now() / 1000) < decoded.payload.exp) {
+
+          console.log(this.authenticated);
+
           this.authenticated = true;
+
+          console.log(this.authenticated);
+
           return;
         }
+        console.log(this.authenticated);
         console.log('jwt expired :: ', new Date(decoded.payload.exp * 1000));
       }
     }
 
+console.log(this.authenticated);
     this.authenticated = false;
     return;
   },
@@ -85,6 +103,10 @@ export default {
     return {
       'Authorization': 'Bearer ' + localStorage.getItem('linksapp-jwt')
     };
+  },
+
+  init() {
+    googleAuth.init();
   }
 
 }

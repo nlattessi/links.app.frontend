@@ -10,13 +10,15 @@ import CreateCategory from './components/Links/CreateCategory.vue';
 import CreateLink from './components/Links/CreateLink.vue';
 
 import auth from './auth';
+// import googleauth from './google-auth';
+auth.init();
 
 import './assets/base.css';
 
 Vue.use(VueResource);
 Vue.use(VueRouter);
 
-Vue.http.options.xhr = {withCredentials: true};
+Vue.http.options.xhr = { withCredentials: true };
 
 Vue.http.interceptors.push((request, next) => {
   next((response) => {

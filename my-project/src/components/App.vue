@@ -16,16 +16,15 @@
 
     data () {
       return {
-        // authenticated: auth.authenticated
         user: auth.user
       }
     },
 
-    methods: {
-      login: function() {
-        auth.login();
-      }
-    }
+    // methods: {
+    //   login: function() {
+    //     auth.login();
+    //   }
+    // }
   }
 </script>
 

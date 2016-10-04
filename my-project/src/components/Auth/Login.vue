@@ -48,7 +48,10 @@
 
 <script>
   import auth from '../../auth';
+  import googleauth from '../../google-auth';
   import Alert from '../Alert.vue';
+
+  // import googleAuth2 from '../../google-auth';
 
   export default {
     components: { Alert },
@@ -62,7 +65,7 @@
         alerts: [],
         loggingIn: false,
 
-        googleAuth2: null,
+        // googleAuth2: null,
       }
     },
 
@@ -103,7 +106,7 @@
           if (response.authResponse) {
             this.$http.get(`${process.env.API_URL_FACEBOOK_LOGIN}?accessToken=${response.authResponse.accessToken}`)
               .then((response) => {
-                auth.login(response.body.token);
+                auth.login(response.body.token, 'facebook');
                 this.$dispatch('userLoggedIn');
                 this.$router.go('/links');
             }, (response) => {
@@ -135,11 +138,11 @@
 
       logInWithGoogle () {
         this.loggingIn = true;
-        this.googleAuth2.signIn()
+        googleauth.client.signIn()
           .then((response) => {
             this.$http.get(`${process.env.API_URL_GOOGLE_LOGIN}?accessToken=${response.getAuthResponse().id_token}`)
                 .then((response) => {
-                  auth.login(response.body.token);
+                  auth.login(response.body.token, 'google');
                   this.$dispatch('userLoggedIn');
                   this.$router.go('/links');
                 }, (response) => {
@@ -163,23 +166,16 @@
                   }
                   this.loggingIn = false;
                 });
-            this.loggingIn = false;
+            // this.loggingIn = false;
           });
 
       },
-
-      initGoogleLogin () {
-        gapi.load('auth2', () => {
-          this.googleAuth2 = gapi.auth2.init({
-            client_id: '367309930083-53pu80b66ua3jro4fdu0tv8cvsqceqhs.apps.googleusercontent.com',
-            cookiepolicy: 'single_host_origin',
-          });
-        });
-      }
     },
 
-    ready () {
-      this.initGoogleLogin();
+    ready() {
+      if (auth.isLogged()) {
+        this.$router.go('/links/');
+      }
     }
   }
 </script>
