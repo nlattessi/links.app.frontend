@@ -5,7 +5,7 @@
         <h3 class="card-title">New Category</h3>
         <form role="form" v-on:submit.prevent="create">
 
-          <alert :alerts.sync="alerts"></alert>
+          <!--<alert :alerts.sync="alerts"></alert>-->
 
           <div class="form-group">
             <label for="name">Name</label>
@@ -27,12 +27,14 @@
   export default {
     components: { Alert },
 
+    props: [ 'alerts' ],
+
     data () {
       return {
         newCategory: {
           name: null
         },
-        alerts: [],
+        // alerts: [],
         adding: false
       }
     },
@@ -43,6 +45,10 @@
         this.$http.post(process.env.API_URL_CATEGORIES, this.newCategory, { headers: auth.getAuthHeader() })
           .then((response) => {
             this.$dispatch('addedCategory', response.body);
+            this.alerts.push({
+              type: 'success',
+              message: 'Category added!'
+            });
             this.$router.go('/links');
           }, (response) => {
             this.alerts = [];

@@ -22,32 +22,32 @@
 </template>-->
 
 <template>
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card card-block">
-                <h3 class="card-title text-md-center">Links</h3>
-
-                <hr>
-
-                <alert :alerts.sync="alerts"></alert>
-
-                <div class="text-md-center">
-                    <p class="content">Placeholder</p>
-                </div>
-
-            </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card card-block" v-for="category in categories">
+        <h3 class="card-title text-md-center">{{category.name}}</h3>
+        <div class="text-md-center" v-if="category.links.data">
+          <div class="list-group">
+            <template v-for="link in category.links.data">
+              <a href="{{ link.url }}" class="list-group-item list-group-item-action">{{ link.title ? link.title : link.url }}</a>
+            </template>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </template>
 
 <script>
   import auth from '../../auth'
   import store from '../../store';
 
-  import Alert from '../Alert.vue';
+  // import Alert from '../Alert.vue';
 
   export default {
-    components: { Alert },
+    // components: { Alert },
+
+    // props: [ 'alerts' ],
 
     data() {
       return {
@@ -62,6 +62,7 @@
         // console.log('getCategories')
         this.$http.get(process.env.API_URL_CATEGORIES, { headers: auth.getAuthHeader() })
           .then((response) => {
+            console.log(response);
             this.categories = response.body.data
           }, (response) => {
             this.error = '' + response.body.error.status + ': ' + response.body.error.message
