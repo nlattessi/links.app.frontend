@@ -5,8 +5,6 @@
         <h3 class="card-title">New Category</h3>
         <form role="form" v-on:submit.prevent="create">
 
-          <!--<alert :alerts.sync="alerts"></alert>-->
-
           <div class="form-group">
             <label for="name">Name</label>
             <input type="text" class="form-control" id="name" v-model="newCategory.name" />
@@ -22,11 +20,8 @@
 
 <script>
   import auth from '../../auth';
-  import Alert from '../Alert.vue';
 
   export default {
-    components: { Alert },
-
     props: [ 'alerts' ],
 
     data () {
@@ -34,7 +29,6 @@
         newCategory: {
           name: null
         },
-        // alerts: [],
         adding: false
       }
     },

@@ -6,8 +6,6 @@
 
         <hr>
 
-        <alert :alerts.sync="alerts"></alert>
-
         <div class="text-md-center" v-if="registering" transition="fade">
           <img src="http://s14.postimg.org/boisrfbv1/battery.gif" class="img-rounded" alt="...">
           <p class="content">Logging in...</p>
@@ -53,10 +51,9 @@
 
 <script>
   import auth from '../../auth';
-  import Alert from '../Alert.vue';
 
   export default {
-    components: { Alert },
+    props: [ 'alerts' ],
 
     data () {
       return {
@@ -65,7 +62,6 @@
           password: null,
           password_confirmation: null
         },
-        alerts: [],
         registering: false
       }
     },
@@ -79,7 +75,7 @@
             this.$dispatch('userRegistered');
             this.$router.go('/links');
           }, (response) => {
-            this.alerts = [];
+            // this.alerts = [];
             if (response.status === 422) {
               for (const key in response.body) {
                 if (response.body.hasOwnProperty(key)) {

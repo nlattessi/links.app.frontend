@@ -6,8 +6,6 @@
 
         <hr>
 
-        <alert :alerts.sync="alerts"></alert>
-
         <div class="text-md-center" v-if="loggingIn" transition="fade">
           <img src="./../../assets/battery.gif" class="img-rounded" alt="...">
           <p class="content">Logging in...</p>
@@ -48,10 +46,9 @@
 
 <script>
   import auth from '../../auth';
-  import Alert from '../Alert.vue';
 
   export default {
-    components: { Alert },
+    props: [ 'alerts' ],
 
     data () {
       return {
@@ -59,7 +56,6 @@
           email: null,
           password: null
         },
-        alerts: [],
         loggingIn: false,
       }
     },
@@ -73,7 +69,7 @@
             this.$dispatch('userLoggedIn');
             this.$router.go('/links');
           }, (response) => {
-            this.alerts = [];
+            // this.alerts = [];
             if (response.status === 404 || response.status === 422) {
               if (response.status === 422) {
                 for (const key in response.body) {
@@ -166,24 +162,8 @@
 
       },*/
     },
-
-    ready() {
-      if (auth.isLogged()) {
-        // this.$router.go('/links');
-        console.log(auth.isLogged());
-      }
-    },
     
     route: {
-      data: function (transition) {
-        // if (auth.isLogged()) {
-        //   console.log(auth.isLogged());
-        //   transition.redirect('/links');
-        // } else {
-        //   transition.next();
-        // }
-      },
-
       activate: function (transition) {
         if (auth.isLogged()) {
           transition.redirect('/links');

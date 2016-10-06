@@ -1,39 +1,22 @@
-<!--<template>
-
-  <div class="row">
-    <div class="col-md-10 offset-md-4">
-
-      <div class="alert alert-danger" v-if="error">
-        <p>{{ error }}</p>
-      </div>
-
-      <template v-for="category in categories">
-        <h2>{{ category.name }}</h2>
-
-        <ul>
-          <li v-for="link in category.links.data">
-            <a href="{{ link.url }}">{{ link.title ? link.title : link.url }}</a>
-          </li>
-        </ul>
-      </template>
-
-    </div>
-  </div>
-</template>-->
-
 <template>
   <div class="row">
     <div class="col-md-12">
+
       <div class="card card-block" v-for="category in categories">
-        <h3 class="card-title text-md-center">{{category.name}}</h3>
-        <div class="text-md-center" v-if="category.links.data">
-          <div class="list-group">
-            <template v-for="link in category.links.data">
-              <a href="{{ link.url }}" class="list-group-item list-group-item-action">{{ link.title ? link.title : link.url }}</a>
-            </template>
-          </div>
-        </div>
+
+        <h3 class="card-title">
+          {{category.name}}
+          <span class="add-margin-link"><button @click="edit(category)" type="button" class="btn btn-info btn-sm"><i class="fa fa-pencil" aria-hidden="true"></i></button></span>
+        </h3>
+
+        <ul v-if="category.links.data">
+          <li v-for="link in category.links.data">
+            <a href="{{link.url}}">{{ link.title ? link.title : link.url }}</a>
+          </li>
+        </ul>
+
       </div>
+
     </div>
   </div>
 </template>
@@ -42,13 +25,7 @@
   import auth from '../../auth'
   import store from '../../store';
 
-  // import Alert from '../Alert.vue';
-
   export default {
-    // components: { Alert },
-
-    // props: [ 'alerts' ],
-
     data() {
       return {
         categories: [],
@@ -58,32 +35,41 @@
     },
 
     methods: {
+      edit(category) {
+        console.log('edit category :: ', category.name);
+      },
+
       getCategories() {
-        // console.log('getCategories')
-        this.$http.get(process.env.API_URL_CATEGORIES, { headers: auth.getAuthHeader() })
+        this.$http.get(process.env.API_URL_CATEGORIES_WITH_LINKS, { headers: auth.getAuthHeader() })
           .then((response) => {
-            console.log(response);
             this.categories = response.body.data
           }, (response) => {
-            this.error = '' + response.body.error.status + ': ' + response.body.error.message
-          })
+            this.alerts.push({
+              type: 'danger',
+              message: response.body.error.status + ': ' + response.body.error.message
+            });
+          });
       }
     },
 
     ready() {
-        this.getCategories();
-        store.getCategories();
-        console.log(this.sharedState);
-    },
-
-    route: {
-      canActivate() {
-        return auth.isLogged();
-      }
-    },
-
-    // events: {
-    //   'addedCategory': 'getCategories'
-    // }
+      this.getCategories();
+    }
   }
 </script>
+
+<style>
+  .add-margin-link {
+    margin-left: 10px;
+  }
+
+  .card-title span.add-margin-link {
+    opacity: 0;
+    -webkit-transition: opacity .25s ease-in-out;
+    transition: opacity .25s ease-in-out;
+  }
+
+  .card-title:hover span.add-margin-link {
+    opacity: 1;
+  }
+</style>

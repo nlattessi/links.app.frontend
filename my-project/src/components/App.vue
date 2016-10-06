@@ -7,7 +7,7 @@
           <alert :alerts.sync="alerts"></alert>
         </div>
       </div>
-      <router-view transition="fade" transition-mode="out-in" :alerts="alerts"></router-view>
+      <router-view transition="fade" transition-mode="out-in" :alerts.sync="alerts"></router-view>
     </div>
   </div>
 </template>
@@ -25,13 +25,6 @@
         user: auth.user,
         alerts: []
       }
-    },
-
-    ready () {
-      this.alerts.push({
-        type: 'success',
-        message: 'Category added!'
-      });
     }
   }
 </script>

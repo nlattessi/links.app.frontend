@@ -19,8 +19,11 @@
   import auth from '../../auth';
 
   export default {
+    props: [ 'alerts' ],
+
     methods: {
       logout() {
+        this.alerts = [];
         setTimeout(() => {
           auth.logout();
           this.$router.go('/login');

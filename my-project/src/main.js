@@ -33,10 +33,7 @@ Vue.http.interceptors.push((request, next) => {
 auth.checkAuth();
 
 export const router = new VueRouter({
-  linkActiveClass: 'active',
-  // hashbang: false,
-  // history: true,
-  // mode: 'html5'
+  linkActiveClass: 'active'
 });
 
 router.map({

@@ -5,19 +5,27 @@
         <h3 class="card-title">New Link</h3>
         <form role="form" v-on:submit.prevent="create">
 
-          <alert :alerts.sync="alerts"></alert>
-
           <div class="form-group">
             <label for="title">Title</label>
-            <input type="text" class="form-control" id="title" v-model="newLink.title" />
+            <input type="text" class="form-control" id="title" v-model="newLink.title" :disabled="disabled" />
           </div>
 
           <div class="form-group">
             <label for="url">Url</label>
-            <input type="text" class="form-control" id="url" v-model="newLink.url" />
+            <input type="text" class="form-control" id="url" v-model="newLink.url" :disabled="disabled" />
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block" :disabled="adding">Add new link</button>
+          <div class="form-group">
+            <label for="category">Category</label>
+            <select class="form-control" v-model="newLink.category" :disabled="disabled">
+              <option value="" selected disabled>Select category...</option>
+              <template v-for="category in categories">
+                <option value="{{category.id}}">{{category.name}}</option>
+              </template>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" :disabled="disabled">Add new link</button>
 
         </form>
       </div>
@@ -28,57 +36,82 @@
 <script>
   import auth from '../../auth';
   import store from '../../store';
-  import Alert from '../Alert.vue';
 
   export default {
-    components: { Alert },
+    props: [ 'alerts' ],
 
     data () {
       return {
         newLink: {
           title: null,
-          url: null
+          url: null,
+          category: null
         },
-        categories: null,
-        alerts: [],
-        adding: false
+        categories: "",
+        disabled: false,
       }
     },
 
     methods: {
-      create () {
-        this.adding = true;
-        this.$http.post(process.env.API_URL_LINKS, this.newLink, { headers: auth.getAuthHeader() })
+      getCategories() {
+        this.$http.get(process.env.API_URL_CATEGORIES, { headers: auth.getAuthHeader() })
           .then((response) => {
-            this.$dispatch('addedLink', response.body);
-            this.$router.go('/links');
-          }, (response) => {
-            this.alerts = [];
-            if (response.status === 400 || response.status === 422) {
-              if (response.status === 422) {
-                for (const key in response.body) {
-                  if (response.body.hasOwnProperty(key)) {
-                    this.alerts.push({
-                      type: 'danger',
-                      message: response.body[key]
-                    });
-                  }
-                }
-              } else {
-                this.alerts.push({
-                  type: 'danger',
-                  message: 'Sorry, an error has been occurred.'
-                });
-              }
+            this.categories = response.body.data
+            if (this.categories.length < 1) {
+              this.disabled = true;
+              this.alerts.push({
+                type: 'danger',
+                message: 'Create a category before creating a new link.'
+              });
             }
-            this.adding = false;
+          }, (response) => {
+            this.alerts.push({
+              type: 'danger',
+              message: response.body.error.status + ': ' + response.body.error.message
+            });
           });
+      },
+
+      create () {
+        if (this.newLink.category !== "") {
+          this.disabled = true;
+          this.$http.post(process.env.API_URL_LINKS, this.newLink, { headers: auth.getAuthHeader() })
+            .then((response) => {
+              this.$dispatch('addedLink', response.body);
+              this.$router.go('/links');
+            }, (response) => {
+              if (response.status === 400 || response.status === 422) {
+                if (response.status === 422) {
+                  for (const key in response.body) {
+                    if (response.body.hasOwnProperty(key)) {
+                      this.alerts.push({
+                        type: 'danger',
+                        message: response.body[key]
+                      });
+                    }
+                  }
+                } else {
+                  this.alerts.push({
+                    type: 'danger',
+                    message: 'Sorry, an error has been occurred.'
+                  });
+                }
+              }
+              this.disabled = false;
+            });
+
+        } else {
+          this.alerts.push({
+            type: 'danger',
+            message: 'A category must be selected.'
+          });
+        }
       }
     },
 
     ready () {
-      // this.categories = store.getCategories();
-      this.categories = store.state.categories;
+      this.alerts = [];
+      this.getCategories();
     }
   }
 </script>
