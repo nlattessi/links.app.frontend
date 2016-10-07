@@ -4,26 +4,26 @@
     <div class="container">
       <div class="row">
         <div class="col-md-8 offset-md-2">
-          <alert :alerts.sync="alerts"></alert>
+          <alert-list></alert-list>
         </div>
       </div>
-      <router-view transition="fade" transition-mode="out-in" :alerts.sync="alerts"></router-view>
+      <router-view transition="fade" transition-mode="out-in"></router-view>
     </div>
   </div>
 </template>
 
 <script>
+  import alertService from '../alerts';
   import auth from '../auth';
-  import Alert from './Alert.vue';
+  import AlertList from './AlertList.vue';
   import TopNav from './TopNav.vue';
 
   export default {
-    components: { Alert, TopNav },
+    components: { AlertList, TopNav },
 
-    data () {
+    data() {
       return {
-        user: auth.user,
-        alerts: []
+        user: auth.user
       }
     }
   }
@@ -33,7 +33,7 @@
   .fade-transition {
     transition: opacity 0.2s ease;
   }
-  
+
   .fade-enter,
   .fade-leave {
     opacity: 0;

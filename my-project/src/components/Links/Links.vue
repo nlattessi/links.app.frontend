@@ -22,15 +22,15 @@
 </template>
 
 <script>
-  import auth from '../../auth'
-  import store from '../../store';
+  import alertService from '../../alerts';
+  import auth from '../../auth';
 
   export default {
+    props: [ 'messages' ],
+
     data() {
       return {
-        categories: [],
-        error: '',
-        sharedState: store.state
+        categories: []
       }
     },
 
@@ -44,10 +44,11 @@
           .then((response) => {
             this.categories = response.body.data
           }, (response) => {
-            this.alerts.push({
-              type: 'danger',
-              message: response.body.error.status + ': ' + response.body.error.message
-            });
+            // this.alerts.push({
+            //   type: 'danger',
+            //   message: response.body.error.status + ': ' + response.body.error.message
+            // });
+            alertService.addAlert('danger', response.body.error.status + ': ' + response.body.error.message);
           });
       }
     },

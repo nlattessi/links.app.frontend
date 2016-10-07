@@ -12,21 +12,23 @@
       <button class="modal-default-button" @click="addCategory()">
         Add Category
       </button>
+      <button class="modal-default-button" @click="$emit('close')">
+        Close
+      </button>
     </div>
     </modal>
 </template>
 
 <script>
-  import auth from '../auth'
+  import auth from '../../auth'
   import BaseModal from './BaseModal'
 
   export default {
-
     components: {
       BaseModal
     },
 
-    props: ['show'],
+    props: [ 'show' ],
 
     data () {
       return {
@@ -44,34 +46,34 @@
 
         const data = {
           name: this.name
-        }
+        };
 
         // this.$http.post('https://dry-shore-86449.herokuapp.com/user/categories', data, { headers: auth.getAuthHeader() })
-        this.$http.post('http://links.app/user/categories', data, { headers: auth.getAuthHeader() })
-          .then((response) => {
-            console.log(response)
-            console.log('broadcasted addedCategory')
-            this.$dispatch('addedCategory')
-            this.close()
-          }, (response) => {
-            console.log(response.json())
+        // this.$http.post('http://links.app/user/categories', data, { headers: auth.getAuthHeader() })
+        //   .then((response) => {
+        //     console.log(response)
+        //     console.log('broadcasted addedCategory')
+        //     this.$dispatch('addedCategory')
+        //     this.close()
+        //   }, (response) => {
+        //     console.log(response.json())
 
-            if (response.body.error.status === 401) {
+        //     if (response.body.error.status === 401) {
 
-              console.log("holis")
+        //       console.log("holis")
 
-              auth.refreshToken(this)
-                .then((response) => {
-                  this.addCategory()
-                }, (response) => {
-                  auth.logout()
-                  this.$router.go('/')
-                })
+        //       auth.refreshToken(this)
+        //         .then((response) => {
+        //           this.addCategory()
+        //         }, (response) => {
+        //           auth.logout()
+        //           this.$router.go('/')
+        //         })
 
-            }
+        //     }
 
-            this.close()
-        })
+        //     this.close()
+        // })
       }
     }
   }

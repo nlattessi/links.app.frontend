@@ -19,11 +19,10 @@
 </template>
 
 <script>
+  import alertService from '../../alerts';
   import auth from '../../auth';
 
   export default {
-    props: [ 'alerts' ],
-
     data () {
       return {
         newCategory: {
@@ -38,29 +37,29 @@
         this.adding = true;
         this.$http.post(process.env.API_URL_CATEGORIES, this.newCategory, { headers: auth.getAuthHeader() })
           .then((response) => {
-            this.$dispatch('addedCategory', response.body);
-            this.alerts.push({
-              type: 'success',
-              message: 'Category added!'
-            });
-            this.$router.go('/links');
+            // this.$dispatch('addedCategory', response.body);
+            alertService.addAlert('success', 'Category added!', true);
+            // this.$router.go('/links');
+            this.newCategory.name = null;
+            this.adding = false;
           }, (response) => {
-            this.alerts = [];
             if (response.status === 400 || response.status === 422) {
               if (response.status === 422) {
                 for (const key in response.body) {
                   if (response.body.hasOwnProperty(key)) {
-                    this.alerts.push({
-                      type: 'danger',
-                      message: response.body[key]
-                    });
+                    // this.alerts.push({
+                    //   type: 'danger',
+                    //   message: response.body[key]
+                    // });
+                    alertService.addAlert('danger', response.body[key]);
                   }
                 }
               } else {
-                this.alerts.push({
-                  type: 'danger',
-                  message: 'Sorry, an error has been occurred.'
-                });
+                // this.alerts.push({
+                //   type: 'danger',
+                //   message: 'Sorry, an error has been occurred.'
+                // });
+                alertService.addAlert('danger', 'Sorry, an error has been occurred.');
               }
             }
             this.adding = false;

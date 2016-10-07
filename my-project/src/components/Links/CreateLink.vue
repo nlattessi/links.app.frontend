@@ -37,9 +37,9 @@
   import auth from '../../auth';
   import store from '../../store';
 
-  export default {
-    props: [ 'alerts' ],
+  import alertService from '../../alerts';
 
+  export default {
     data () {
       return {
         newLink: {
@@ -59,16 +59,18 @@
             this.categories = response.body.data
             if (this.categories.length < 1) {
               this.disabled = true;
-              this.alerts.push({
-                type: 'danger',
-                message: 'Create a category before creating a new link.'
-              });
+              // this.alerts.push({
+              //   type: 'danger',
+              //   message: 'Create a category before creating a new link.'
+              // });
+              alertService.addAlert('danger', 'Create a category before creating a new link.');
             }
           }, (response) => {
-            this.alerts.push({
-              type: 'danger',
-              message: response.body.error.status + ': ' + response.body.error.message
-            });
+            // this.alerts.push({
+            //   type: 'danger',
+            //   message: response.body.error.status + ': ' + response.body.error.message
+            // });
+            alertService.addAlert('danger', response.body.error.status + ': ' + response.body.error.message);
           });
       },
 
@@ -78,39 +80,46 @@
           this.$http.post(process.env.API_URL_LINKS, this.newLink, { headers: auth.getAuthHeader() })
             .then((response) => {
               this.$dispatch('addedLink', response.body);
-              this.$router.go('/links');
+              alertService.addAlert('success', 'Link added!');
+              this.newLink.title = null;
+              this.newLink.url = null;
+              this.newLink.category = "";
+              this.disabled = false;
+              // this.$router.go('/links');
             }, (response) => {
               if (response.status === 400 || response.status === 422) {
                 if (response.status === 422) {
                   for (const key in response.body) {
                     if (response.body.hasOwnProperty(key)) {
-                      this.alerts.push({
-                        type: 'danger',
-                        message: response.body[key]
-                      });
+                      // this.alerts.push({
+                      //   type: 'danger',
+                      //   message: response.body[key]
+                      // });
+                      alertService.addAlert('danger', response.body[key]);
                     }
                   }
                 } else {
-                  this.alerts.push({
-                    type: 'danger',
-                    message: 'Sorry, an error has been occurred.'
-                  });
+                  // this.alerts.push({
+                  //   type: 'danger',
+                  //   message: 'Sorry, an error has been occurred.'
+                  // });
+                  alertService.addAlert('danger', 'Sorry, an error has been occurred.');
                 }
               }
               this.disabled = false;
             });
 
         } else {
-          this.alerts.push({
-            type: 'danger',
-            message: 'A category must be selected.'
-          });
+          // this.alerts.push({
+          //   type: 'danger',
+          //   message: 'A category must be selected.'
+          // });
+          alertService.addAlert('danger', 'A category must be selected.');
         }
       }
     },
 
     ready () {
-      this.alerts = [];
       this.getCategories();
     }
   }

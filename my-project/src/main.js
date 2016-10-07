@@ -9,6 +9,7 @@ import Links from './components/Links/Links.vue';
 import CreateCategory from './components/Links/CreateCategory.vue';
 import CreateLink from './components/Links/CreateLink.vue';
 import auth from './auth';
+import alertService from './alerts';
 import './assets/base.css';
 
 Vue.use(VueResource);
@@ -25,7 +26,7 @@ Vue.http.interceptors.push((request, next) => {
       console.log('Error message :: ', response.body.error.message);
 
       auth.logout();
-      Vue.router.go('/login');
+      router.go('/login');
     }
   });
 });
@@ -65,6 +66,8 @@ router.redirect({
 });
 
 router.beforeEach(function (transition) {
+  alertService.cleanAlerts();
+
   if (transition.to.loggedInOnly && !auth.isLogged()) {
     transition.redirect('/login');
   } else {
