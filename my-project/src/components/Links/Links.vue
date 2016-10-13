@@ -1,24 +1,25 @@
 <template>
-  <div class="row">
-    <div class="col-md-12">
+	<div class="row">
+		<div class="col-md-12">
 
-      <div class="card card-block" v-for="category in categories">
+			<div class="card card-block" v-for="category in categories">
 
-        <h3 class="card-title">
-          {{category.name}}
-          <span class="add-margin-link"><button @click="edit(category)" type="button" class="btn btn-info btn-sm"><i class="fa fa-pencil" aria-hidden="true"></i></button></span>
-        </h3>
+				<h3 class="card-title">
+					{{category.name}}
+					<span class="add-margin-link"><button @click="editCategory(category)" type="button" class="btn btn-info btn-sm"><i class="fa fa-pencil" aria-hidden="true"></i></button></span>
+				</h3>
 
-        <ul v-if="category.links.data">
-          <li v-for="link in category.links.data">
-            <a href="{{link.url}}">{{ link.title ? link.title : link.url }}</a>
-          </li>
-        </ul>
+				<ul v-if="category.links.data">
+					<li v-for="link in category.links.data" class="hover-edit-link">
+						<a class="a-link" href="{{link.url}}" target="_blank">{{ link.title ? link.title : link.url }}</a>
+						<span class="add-margin-link edit-link"><button @click="editLink(link)" type="button" class="btn btn-info btn-sm"><i class="fa fa-pencil" aria-hidden="true"></i></button></span>
+					</li>
+				</ul>
 
-      </div>
+			</div>
 
-    </div>
-  </div>
+		</div>
+	</div>
 </template>
 
 <script>
@@ -35,8 +36,12 @@
     },
 
     methods: {
-      edit(category) {
-        console.log('edit category :: ', category.name);
+      editCategory(category) {
+        this.$router.go({ name: 'editCategory', params: { category: category.id }});
+      },
+
+      editLink(link) {
+        this.$router.go({ name: 'editLink', params: { link: link.id }});
       },
 
       getCategories() {
@@ -60,17 +65,27 @@
 </script>
 
 <style>
-  .add-margin-link {
-    margin-left: 10px;
-  }
+	.add-margin-link {
+		margin-left: 10px;
+	}
 
-  .card-title span.add-margin-link {
-    opacity: 0;
-    -webkit-transition: opacity .25s ease-in-out;
-    transition: opacity .25s ease-in-out;
-  }
+	.card-title span.add-margin-link {
+		opacity: 0;
+		-webkit-transition: opacity .25s ease-in-out;
+		transition: opacity .25s ease-in-out;
+	}
 
-  .card-title:hover span.add-margin-link {
+	.card-title:hover span.add-margin-link {
+		opacity: 1;
+	}
+
+	span.edit-link {
+		opacity: 0;
+		-webkit-transition: opacity .25s ease-in-out;
+		transition: opacity .25s ease-in-out;
+	}
+
+  .hover-edit-link:hover span.edit-link {
     opacity: 1;
   }
 </style>

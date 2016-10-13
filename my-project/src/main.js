@@ -8,6 +8,8 @@ import Logout from './components/Auth/Logout.vue';
 import Links from './components/Links/Links.vue';
 import CreateCategory from './components/Links/CreateCategory.vue';
 import CreateLink from './components/Links/CreateLink.vue';
+import EditCategory from './components/Links/EditCategory.vue';
+import EditLink from './components/Links/EditLink.vue';
 import auth from './auth';
 import alertService from './alerts';
 import './assets/base.css';
@@ -57,6 +59,16 @@ router.map({
   },
   '/create/link': {
     component: CreateLink,
+    loggedInOnly: true
+  },
+  '/edit/category/:category': {
+    name: 'editCategory',
+    component: EditCategory,
+    loggedInOnly: true
+  },
+  '/edit/link/:link': {
+    name: 'editLink',
+    component: EditLink,
     loggedInOnly: true
   },
 });
