@@ -13,6 +13,7 @@ import EditLink from './components/Links/EditLink.vue';
 import auth from './auth';
 import alertService from './alerts';
 import './assets/base.css';
+import './assets/sweetalert.css';
 
 Vue.use(VueResource);
 Vue.use(VueRouter);
